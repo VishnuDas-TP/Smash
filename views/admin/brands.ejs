@@ -1,0 +1,189 @@
+<%- include("../../views/partails/admin/header.ejs") %>
+
+
+ 
+<section class="content-main">
+    <div class="content-header">
+      <div>
+        <h2 class="content-title card-title">Brands</h2>
+        <p>Add, edit or delete a brand</p>
+      </div>
+      <div>
+        <input type="text" placeholder="Search Brands" class="form-control bg-white">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <form method="post" action="/admin/addBrand" enctype="multipart/form-data" id="brandForm">
+              <div class="mb-4">
+                <label for="brand_name" class="form-label">Brand Name</label>
+                <input 
+                  type="text" 
+                  name="name" 
+                  placeholder="Type here" 
+                  class="form-control" 
+                  id="brand_name" 
+                  required 
+                />
+                <small class="text-danger" id="nameError"></small>
+              </div>
+              <div class="mb-4">
+                <label for="brand_image" class="form-label">Brand Image</label>
+                <div class="input-upload">
+                  <img src="" alt="" id="preview" style="max-width: 100%; max-height: 150px;" />
+                  <input 
+                    class="form-control border mt-2" 
+                    name="image" 
+                    type="file" 
+                    id="brand_image" 
+                    accept="image/*" 
+                    onchange="previewImage(event)" 
+                    required 
+                  />
+                  <small class="text-danger" id="imageError"></small>
+                </div>
+              </div>
+              <div class="d-grid">
+                <button class="btn btn-primary" type="submit">Add Brand</button>
+              </div>
+            </form>
+            
+          </div>
+
+          <div class="col-md-9">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Brand</th>
+                    <th>Logo</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <%data.forEach((brand,index)=>{%>
+                    <tr>
+                      <td class="text-start">
+                        <%=brand.brandName%>
+                      </td>
+                      <td class="text-start">
+                        <div class="d-flex align-items-center justify-content-center"
+                          style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+                          <img src="/uploads/product-images/<%=brand.brandImage%>" alt="<%=brand.brandName%>"
+                            class="img-fluid rounded-circle" style="width: 100%; height: auto;" />
+                        </div>
+                      </td>
+                      <td class="text-start">
+                        <%if(brand.isBlocked){%>
+                          <span class="badge rounded-pill alert-danger" style="width: 60px">Blocked</span>
+                          <%}else{%>
+                            <span class="badge rounded-pill alert-success" style="width: 60px">Active</span>
+                            <%}%>
+                      </td>
+                      <td class="text-end">
+                        <%if(brand.isBlocked){%>
+                          <button class="btn btn-success" style="width: 90px;">
+                            <a href="/admin/unblockBrand?id=<%=brand._id%>" class="text-white">Unblock</a>
+                          </button>
+                          <%}else{%>
+                            <button class="btn btn-danger" style="width: 90px;">
+                              <a href="/admin/blockBrand?id=<%=brand._id%>" class="text-white">Block</a>
+                            </button>
+                            <%}%>
+
+
+                              <button class="btn btn-danger" style="width: 90px;">
+                                <a href="/admin/deleteBrand?id=<%=brand._id%>" class="text-white">Delete</a>
+                              </button>
+                      </td>
+                    </tr>
+                    <%})%>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pagination-area mt-30 mb-50">
+      <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+          <%for(let i=1;i<=totalPages;i++){%>
+            <li class="page-item">
+              <a class="page-link <%= (i===currentPage) ? 'active' : '' %>" href="?page=<%=i%>">
+                <%=i%>
+              </a>
+            </li>
+            <%}%>
+        </ul>
+      </nav>
+    </div>
+  </section>
+
+  <script>
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const output = document.getElementById('preview');
+        output.src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById('brandForm').addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevent default submission
+      let isValid = true;
+  
+      // Clear previous error messages
+      document.getElementById('nameError').textContent = '';
+      document.getElementById('imageError').textContent = '';
+  
+      // Validate brand name
+      const brandName = document.getElementById('brand_name').value.trim();
+      if (!brandName) {
+        document.getElementById('nameError').textContent = 'Brand name is required.';
+        isValid = false;
+      }
+  
+      // Validate brand image
+      const brandImage = document.getElementById('brand_image').files[0];
+      if (!brandImage) {
+        document.getElementById('imageError').textContent = 'Brand image is required.';
+        isValid = false;
+      } else if (!['image/jpeg', 'image/png', 'image/gif'].includes(brandImage.type)) {
+        document.getElementById('imageError').textContent = 'Only JPG, PNG, and GIF images are allowed.';
+        isValid = false;
+      }
+  
+      if (isValid) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Brand Added Successfully!',
+          text: 'Your brand has been added.',
+        }).then(() => {
+          this.submit(); // Submit the form
+        });
+      }
+    });
+  
+    // Image preview function
+    function previewImage(event) {
+      const preview = document.getElementById('preview');
+      preview.src = URL.createObjectURL(event.target.files[0]);
+      preview.onload = () => {
+        URL.revokeObjectURL(preview.src); // Free memory
+      };
+    }
+  </script>
+  
+
+
+
+  <%- include("../../views/partails/admin/footer.ejs") %>
