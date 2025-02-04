@@ -15,7 +15,7 @@ const getProductaddPage = async (req, res) => {
         const brand = await Brand.find({isBlocked:false});
         
         res.render("product-add", {
-            cat: category,
+            category: category,
             brand:brand
         });
 
@@ -30,6 +30,8 @@ const getProductaddPage = async (req, res) => {
 const addProducts = async (req,res) => {
     try {
         const products = req.body;
+        console.log(products);
+        
         const productExists = await Product.findOne({
             productName:products.productName
         });
@@ -38,9 +40,16 @@ const addProducts = async (req,res) => {
             if(req.files && req.files.length > 0){
                 for(let i=0;i<req.files.length;i++){
                     const originalImagePath = req.files[i].path;
-                    const resizedImagePath = path.join("public","uploads","product-images", `resized-${req.files[i].filename}`);
-                    await sharp(originalImagePath).resize({width:440,heigth:440}).toFile(resizedImagePath);
+                    const resizedImagePath = path.join("public","uploads","product-images",`${Date.now()}-${req.files[i].filename}`);
+                    await sharp(originalImagePath).resize({width:440,height:440}).toFile(resizedImagePath);
                     images.push(req.files[i].filename);
+
+                    fs.unlink(resizedImagePath, (err) => {
+                        if (err) {
+                            console.error(`Error deleting file: ${resizedImagePath}`, err);
+                        }
+                    });
+        
                 }
             }
 
@@ -48,7 +57,7 @@ const addProducts = async (req,res) => {
             console.log(category)
 
             if(!category){
-                return res.status(400).join("Invaild category name");
+                return res.status(400).console.log("Invaild category name");
 
             }
 
@@ -57,7 +66,7 @@ const addProducts = async (req,res) => {
                 productName:products.productName,
                 description:products.description,
                 brand:products.brand,
-                category:category,
+                category:category._id,
                 regularPrice:products.regularPrice,
                 salePrice:products.salePrice,
                 createdOn:new Date(),
@@ -73,7 +82,7 @@ const addProducts = async (req,res) => {
 
             await newproduct.save();
             console.log("product saved successfully");
-            
+            return res.redirect("/admin/products");
         }else{
             return res.status(400).json("Product already.Please try with another name");
 
@@ -167,29 +176,33 @@ const unblockProduct = async (req, res) => {
     }
 }
 
-const getEditProduct = async (req, res) => {
+const getEditProduct = async (req,res) => {
     try {
-
         const id = req.query.id;
-        const product = await Product.findOne({ _id: id });
+        const product = await Product.findById(id).populate('category');
+        
         const category = await Category.find({});
         const brand = await Brand.find({});
-        res.render("edit-product", {
-            product: product,
-            cat: category,
-            brand:brand
-        })
-
+        res.render("edit-product",{
+            product:product,
+            category:category,
+            brand:brand,
+            activePage: 'products'
+        });
     } catch (error) {
-
+        // res.redirect("/pageerror")
+        console.log(error);
+        
     }
 }
 
 const editProduct = async (req,res) => {
     try {
         const id = req.query.id;
-        const product = await Product.findOne({_id:id});
+        
+        const product = await Product.findById(id)
         const data = req.body;
+                                                                        
         const existingProduct = await Product.findOne({
             productName:data.productName,
             _id:{$ne:id}
@@ -203,6 +216,8 @@ const editProduct = async (req,res) => {
         const images = [];
 
         const category = await Category.findOne({name:data.category})
+       
+        
 
         if (req.files && Array.isArray(req.files) && req.files.length > 0) {
             req.files.forEach(file => {
@@ -214,7 +229,6 @@ const editProduct = async (req,res) => {
             productName:data.productName,
             description:data.description,
             brand:data.brand,
-            category:category._id,
             regularPrice:data.regularPrice,
             salePrice:data.salePrice,
             quantity:data.quantity,
@@ -239,7 +253,7 @@ const deleteSingleImage = async (req,res) => {
 
         const {imageNameToServer,productIdToServer} = req.body;
         const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{productImage:imageNameToServer}});
-        const imagePath = path.join("public","uploads","re-image",imageNameToServer);
+        const imagePath = path.join("public","uploads","product-images",imageNameToServer);
         if(fs.existsSync(imagePath)){
             await fs.unlinkSync(imagePath);
             console.log(`Image ${imageNameToServer} deleted succefully`);

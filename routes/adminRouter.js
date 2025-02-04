@@ -35,7 +35,7 @@ router.get("/editCategory",adminAuth,categoryController.getEditCategory);
 router.post("/editCategory/:id",adminAuth,categoryController.editCategory);
 // Product Management
 router.get("/addProduct",adminAuth,productController.getProductaddPage);
-router.post("/addProduct",adminAuth,uploads.array("images",4),productController.addProducts);
+router.post("/addProducts",adminAuth,uploads.array("images",4),productController.addProducts);
 router.get("/products",adminAuth,productController.getAllProducts);
 router.get("/blockProduct",adminAuth,productController.blockProduct);
 router.get("/unblockProduct",adminAuth,productController.unblockProduct);
@@ -44,7 +44,7 @@ router.post("/editProduct",adminAuth,uploads.array("images",4),productController
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
 // brand management
 router.get("/brands",adminAuth,brandController.getBrandPage);
-router.post("/addBrand",adminAuth,uploads.single("image"),brandController.addBrand);
+router.post("/addBrand",adminAuth,brandController.addBrand);
 router.get("/blockBrand",adminAuth,brandController.blockBrand)
 router.get("/unblockBrand",adminAuth,brandController.unblockBrand)
 router.get("/deleteBrand",adminAuth,brandController.deleteBrand)

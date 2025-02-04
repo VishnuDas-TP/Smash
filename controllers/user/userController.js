@@ -268,6 +268,56 @@ const resendOtp = async (req,res) => {
     
 }
 
+const getShoppingPage = async (req,res) => {
+    try {
+        const user = req.session.user;
+        const categories = await Category.find({ isListed: true });
+
+        // Get filter parameters
+        const { category, minPrice, maxPrice, page = 1 } = req.query;
+        const limit = 8; // Number of products per page
+        const skip = (page - 1) * limit;
+
+        // Build filter conditions
+        let filterConditions = { isBlocked: false, quantity: { $gt: 0 } };
+
+        if (category) filterConditions.category = category;
+        if (minPrice || maxPrice) {
+            filterConditions.salePrice = {};
+            if (minPrice) filterConditions.salePrice.$gte = parseFloat(minPrice);
+            if (maxPrice) filterConditions.salePrice.$lte = parseFloat(maxPrice);
+        }
+
+        const totalProducts = await Product.countDocuments(filterConditions);
+        const productData = await Product.find(filterConditions)
+            .populate('category', 'name')
+            .sort({ createOn: -1 }) // Newest first
+            .skip(skip)
+            .limit(limit);
+
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // let wishlistProductIds = [];
+        // if (user) {
+        //     const wishlist = await Wishlist.findOne({ userId: user }, { 'products.productId': 1, _id: 0 });
+        //     wishlistProductIds = wishlist ? wishlist.products.map(item => item.productId.toString()) : [];
+        // }
+        
+
+        res.render('shop', {
+            user,
+            products: productData,
+            totalPages,
+            currentPage: parseInt(page),
+            // wishlistProductIds,
+            categories,
+        });
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        res.redirect('/pageNotFound');
+    }
+}
+
 const getProductDetails = async (req, res) => {
     try {
   
@@ -309,6 +359,70 @@ const getProductDetails = async (req, res) => {
     }
   }
 
+  const  getFilterData=async (req, res) => {
+    const { category = 'all', search = '', sort = 'default', page = 1, limit = 8 } = req.query;
+
+    try {
+        const categoryId=await Category.findOne({name:category})
+        // Build a query object
+        const query = category === 'all' ? {} : { category:categoryId._id };
+         
+
+        // Add search filter to the query
+        if (search) {
+            query.productName = { $regex: search, $options: 'i' }; // Case-insensitive search
+        }
+        query.isBlocked=false;
+
+        // Determine the sort order
+        let sortCriteria = {};
+        switch (sort) {
+            
+            case 'price-low':
+                sortCriteria.salePrice = 1; // Ascending
+                break;
+            case 'price-high':
+                sortCriteria.salePrice = -1; // Descending
+                break;
+            
+            case 'az':
+                sortCriteria.productName = 1; // Alphabetical A-Z
+                break;
+            case 'za':
+                sortCriteria.productName = -1; // Alphabetical Z-A
+                break;
+            case 'new':
+                sortCriteria.createdAt = -1; // Newest first
+                break;
+            default:
+                sortCriteria = {}; // Default sorting (no specific order)
+        }
+
+        // Fetch products with filtering and sorting applied
+        const products = await Product.find(query).sort(sortCriteria).skip((page - 1) * limit).limit(Number(limit));
+         
+        const totalProducts = await Product.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
+        console.log(products);
+        
+        // Send the filtered and sorted products as JSON
+        res.json({
+            success: true,
+            products, 
+            totalPages,
+            currentPage: Number(page)
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while fetching products',
+            error: error.message,
+        });
+    }
+}
+
+
 
 
 
@@ -323,5 +437,7 @@ module.exports = {
     signup,
     verifyOtp,
     resendOtp,
+    getShoppingPage,
+    getFilterData,
     getProductDetails
 }

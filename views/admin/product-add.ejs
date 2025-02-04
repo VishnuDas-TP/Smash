@@ -2,7 +2,10 @@
 
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     .image-upload-box {
         border: 2px dashed #ccc;
@@ -51,7 +54,7 @@
             <div class="col-lg-8">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <form method="POST" action="/admin/addProduct" enctype="multipart/form-data" id="productForm">
+                        <form method="POST" action="/admin/addProducts" enctype="multipart/form-data" id="productForm">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="product_name" class="form-label">Product Name</label>
@@ -83,15 +86,6 @@
                                         <div id="salePrice-error" class="error-message"></div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-lg-4">
-                                        <div class="mb-4">
-                                            <label class="form-label">Regular price</label>
-                                            <input placeholder="$" name="regularPrice" type="text"
-                                                class="form-control border">
-                                            <div id="regularPrice-error" class="error-message"></div>
-                                        </div>
-                                    </div>
                                 <div class="col-lg-4">
                                     <div class="mb-4">
                                         <label class="form-label">Stock</label>
@@ -115,9 +109,9 @@
                                         <div class="col-sm-6 mb-3">
                                             <label class="form-label">Category</label>
                                             <select class="form-select border" name="category">
-                                                <% for(let i=0;i<cat.length;i++){%>
-                                                    <option value="<%= cat[i].name%>">
-                                                        <%= cat[i].name %>
+                                                <% for(let i=0;i<category.length;i++){%>
+                                                    <option value="<%= category[i].name%>">
+                                                        <%= category[i].name %>
                                                     </option>
                                                 <% } %>
                                             </select>
@@ -148,7 +142,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary" onclick="return validateForm()">Publish Product</button>
+                            <button type="submit" class="btn btn-primary" onclick="return handleFormSubmit()">Publish Product</button>
                         </form>
                     </div>
                 </div>
@@ -251,6 +245,42 @@
         imagePreviewModal.hide();
         cropper.destroy();
     });
+
+    function handleFormSubmit() {
+        const isValid = validateForm();
+
+        if (isValid) {              
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to publish this product.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, publish it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(
+                        'Published!',
+                        'Your product has been successfully published.',
+                        'success'
+                    ).then(() => {
+                        document.getElementById('productForm').submit();
+                    });
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Validation Error',
+                text: 'Please fix the highlighted errors before submitting.',
+                icon: 'error',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        return false; // Prevent default form submission to enable SweetAlert processing
+    }
     
     function validateForm() {
     clearErrorMessages();
@@ -363,32 +393,7 @@ function clearErrorMessages() {
     });
 }
     </script>
-    <script>
-        
-      
-
-  document.getElementById("productForm").addEventListener("submit", function (event) {
-    event.preventDefault(); // Prevent the default form submission
-
-    // Perform your form submission logic here (e.g., send data via AJAX)
-    // For demonstration, we'll assume the submission is successful
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Successfull !',
-      text: 'Product Added Successfully',
-    }).then(() => {
-      // Optionally, you can redirect or reset the form
-      window.location.href = '/admin/products'; // Redirect to another page
-      document.getElementById("myForm").reset(); // Reset the form fields
-    });
-  });
-
-</script>
-
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+    
     
 
 <%- include("../../views/partails/admin/footer.ejs") %>

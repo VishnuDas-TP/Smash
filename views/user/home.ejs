@@ -84,7 +84,7 @@
                                                         data-bs-toggle="modal" data-bs-target="#quickViewModal"><i
                                                             class="fi-rs-eye"></i></a>
                                                     <a aria-label="Add To Wishlist" class="action-btn hover-up"
-                                                        href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                                        href="/addToWishlist?id=<%= product._id%>"><i class="fi-rs-heart"></i></a>
                                                     <a aria-label="Compare" class="action-btn hover-up"
                                                         href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
                                                 </div>
@@ -96,11 +96,14 @@
                                                 <div class="product-category">
                                                     <a href="shop-grid-right.html"><%=product.category.name%></a>
                                                 </div>
-                                                <h2><a href="shop-product-right.html"><%=product.productName%></a></h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
+                                                <h2><a href="/productdetails?id=<%= product._id%>"><%=product.productName%></a></h2>
+                                                <div class="product-rate ">
+                                                    <div class="product-rating" style="width:70%">
+                                                   
+                                                    <!-- <span>
                                                         <span><%=product.productOffer%></span>
-                                                    </span>
+                                                    </span> -->
+                                                </div>
                                                 </div>
                                                 <div class="product-price">
                                                     <span><%=product.salePrice%></span>
