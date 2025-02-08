@@ -17,7 +17,7 @@ const addToWishlist= async (req,res)=>{
 
         if (wishlist) {
             // If the product exists, send a response to trigger SweetAlert
-            return res.status(200).json({ success: false, message: "Product is already in your wishlist!" });
+            return res.status(400).json({status:400, success: false, message: "Product is already in your wishlist!" });
         }
 
         // If not, add the product
@@ -27,12 +27,12 @@ const addToWishlist= async (req,res)=>{
             { upsert: true } // Create wishlist if it doesn't exist
         );
 
-        res.status(200).json({ success: true, message: "Product added to wishlist!" });
+        res.status(200).json({status:200, success: true, message: "Product added to wishlist!" });
 
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: "Error adding product to wishlist" });
+        res.status(500).json({status:500, success: false, message: "Error adding product to wishlist" });
         
     }
 }

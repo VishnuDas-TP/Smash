@@ -19,9 +19,9 @@ const addToCart = async (req,res) => {
             return res.status(404).redirect("/pageNotFound");
         }
 
-        if(productData.quantity<qty){
+        if(productData.quantity==0 || productData.quantity<qty){
             console.log(`Insufficient stock for product ID ${productId}.`);
-         res.redirect("/showcCart");   
+         return res.status(400).json({message:"Insufficient or out of stock"})   
         }
 
         const price = productData.salePrice;
@@ -95,6 +95,48 @@ const getCart= async (req,res) => {
         
     }
 }
+const updateQuantity = async (req, res) => {
+    const { productId, change } = req.body;
+    try {
+
+        const userId = req.session.user;
+        if (!userId) {
+            return res.json({ success: false, message: "User not logged in" });
+        }
+
+        const cart = await Cart.findOne({ userId: userId });
+        if (!cart) {
+            return res.json({ success: false, message: "Cart not found" });
+        }
+
+        const item = cart.items.find((item) => item.productId.toString() === productId);
+        if (item) {
+            item.quantity += change;
+            item.totalPrice = item.quantity * item.price;
+
+            if (item.quantity <= 0) {
+                cart.items = cart.items.filter((item) => item.productId.toString() !== productId);
+            }
+
+            cart.totalPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
+            await cart.save();
+
+            res.json({
+                success: true,
+                newQuantity: item.quantity,
+                newSubtotal: item.totalPrice,
+                totalPrice: cart.totalPrice,
+            });
+        } else {
+            res.json({ success: false, message: "Item not found in cart" });
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: "Failed to update quantity" });
+    }
+};
+
 
 
 
@@ -102,4 +144,5 @@ const getCart= async (req,res) => {
 module.exports = {
     addToCart,
     getCart,
+    updateQuantity,
 }

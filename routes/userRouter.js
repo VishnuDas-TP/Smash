@@ -64,6 +64,7 @@ router.delete("/removeFromWishlist",userAuth,wishlistcontroller.removeFromWishli
 //Cart management
 router.get("/cart",userAuth,cartcontoller.getCart)
 router.post("/addToCart",userAuth,cartcontoller.addToCart)
+router.post("/cart/updateCartQuantity",userAuth,cartcontoller.updateQuantity)
 
 
 

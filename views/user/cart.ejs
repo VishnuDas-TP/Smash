@@ -204,7 +204,7 @@
                                 <tr>
                                     <td class="image product-thumbnail"><img src=" /uploads/product-images/<%= product.productId.productImage[0] %>" alt="#"></td>
                                     <td class="product-des product-name">
-                                        <h5 class="product-name"><a href="shop-product-right.html"></a><%= product.productId.productName %></h5>
+                                        <h5 class="product-name"><a href="/productdetails?id=<%=product.productId._id %>"><%= product.productId.productName %></a></h5>
                                         
                                     </td>
                                     <td class="price" data-title="Price"><span> <%= product.productId.salePrice%></span></td>
@@ -315,7 +315,7 @@ function updateQuantity(productId, change, availableQuantity) {
                 return;
             }
 
-            fetch(`/showCart/updateCartQuantity`, {
+            fetch(`/cart/updateCartQuantity`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
