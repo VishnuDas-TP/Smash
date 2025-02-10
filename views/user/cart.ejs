@@ -235,7 +235,7 @@
                                         <span id="subtotal-<%= products[i].productId._id %>"> ₹ <%=
                                                 product.totalPrice.toLocaleString()%></span>
                                     </td>
-                                    <td class="action" data-title="Remove"><a href="#" onclick="return confirmRemove('<%= product.productId._id %>');" class="text-muted">
+                                    <td class="action" data-title="Remove"><a href="#" onclick="return confirmRemove('<%= product._id %>');" class="text-muted">
                                         <i class="fi-rs-trash"></i>
                                     </a>
                                 </td>
@@ -344,7 +344,7 @@ function updateQuantity(productId, change, availableQuantity) {
 
 
 // Modified remove confirmation function to use SweetAlert
-function confirmRemove(productId) {
+function confirmRemove(itemId) {
     Swal.fire({
         title: 'Are you sure?',
         text: "You want to remove this item from cart?",
@@ -357,7 +357,7 @@ function confirmRemove(productId) {
     }).then((result) => {
         if (result.isConfirmed) {
             // Redirect to the remove route after confirmation
-            window.location.href = `/showCart/remove?id=${productId}`;
+            window.location.href = `/showCart/remove?id=${itemId}`;
         }
     });
     // Prevent the default link action

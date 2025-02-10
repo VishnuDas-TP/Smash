@@ -9,9 +9,17 @@ const addToCart = async (req,res) => {
         const productId =req.query.productId;
         const qty = parseInt(req.query.quantity,10)
 
+        if(!userId){
+            console.log("user not found");
+             return res.status(404).json({redirectUrl: '/login', status: 404})
+            
+        }
+
         if(!productId && !qty){
             console.log("productId or qty not found");
         }
+        console.log(productId);
+        
 
         const productData = await Product.findOne({_id:productId})
         if(!productData){
@@ -88,6 +96,7 @@ const getCart= async (req,res) => {
             console.log("failed to get data");  
         }
 
+
         res.render("cart",{products})
         
     } catch (error) {
@@ -137,6 +146,43 @@ const updateQuantity = async (req, res) => {
     }
 };
 
+const removeFromCart = async (req,res) => {
+    try {
+
+        const itemId = req.query.id;
+        const userId = req.session.user;
+
+        let cart = await Cart.findOneAndUpdate({userId : userId},{$pull:{items:{_id:itemId}}});
+
+        console.log(cart);
+        
+
+        res.redirect("/cart")
+        
+    } catch (error) {
+       console.log("Error removing the product",error);
+        
+    }
+}
+
+const clearCart = async (req,res) => {
+    try {
+
+        const userId = req.session.user;
+        let cart = await Cart.findOne({userId:userId})
+
+        cart.items =[];
+
+        await cart.save();
+
+        res.redirect("/cart")
+        
+    } catch (error) {
+        console.log("Error clearing cart",error);
+        
+    }
+}
+
 
 
 
@@ -145,4 +191,6 @@ module.exports = {
     addToCart,
     getCart,
     updateQuantity,
+    removeFromCart,
+    clearCart,
 }
