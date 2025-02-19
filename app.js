@@ -43,7 +43,7 @@ app.use("/admin",adminRouter)
 
 
 app.listen(process.env.PORT,()=>{
-    console.log("Server Running on 3001");
+    console.log("Server Running on 3000");
     
 });
 

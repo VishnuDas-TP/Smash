@@ -5,6 +5,9 @@ const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const productController = require("../controllers/admin/productController");
 const brandController = require("../controllers/admin/brandController")
+const orderController = require("../controllers/admin/orderController")
+const couponController = require("../controllers/admin/couponController")
+
 
 const {userAuth,adminAuth} = require("../middlewares/auth")
 
@@ -48,6 +51,15 @@ router.post("/addBrand",adminAuth,brandController.addBrand);
 router.get("/blockBrand",adminAuth,brandController.blockBrand)
 router.get("/unblockBrand",adminAuth,brandController.unblockBrand)
 router.get("/deleteBrand",adminAuth,brandController.deleteBrand)
+
+// Order menagement
+router.get('/allOrders',orderController.getAllorders);
+router.post('/update-order-status',orderController.updateOrderStatus);
+
+// coupon manegement 
+router.get("/getCoupon",couponController.getCoupon)
+router.post('/add-coupon',couponController.addCoupon)
+router.get('/delete-coupon/:id',couponController.deleteCoupon)
 
 
 

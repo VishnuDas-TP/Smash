@@ -1,6 +1,25 @@
-const mongoose = require(mongoose);
+const mongoose = require("mongoose");
 const {Schema} = mongoose;
 const {v4:uuidv4} = require("uuid");
+
+const generateShortId = () => {
+    const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let shortId = "";
+    for (let i = 0; i < 6; i++) {
+      shortId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return shortId;
+  };
+  
+  const AddressSchema = new Schema({
+    addressType: { type: String, required: true },
+    name: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pincode: { type: String, required: true },
+    phone: { type: String, required: true },
+    altPhone: { type: String },
+  });
 
 
 const orderSchema = new Schema({
@@ -10,14 +29,19 @@ const orderSchema = new Schema({
         default:()=>uuidv4(),
         unique:true
     },
+    userId:{
+        type:Schema.Types.ObjectId,
+        ref:"User",
+        required:true
+    },
     orderItems:[
         {
         product:{
-            type:Schema.Type.ObjectId,
-            ref:"Produt",
+            type: Schema.Types.ObjectId,
+            ref:"Product",
             required:true
         },
-        quntity:{
+        quantity:{
             type:Number,
             required:true
         },
@@ -39,15 +63,22 @@ const orderSchema = new Schema({
         type:Number,
         required:true
     },
-    address:{
-        type:Schema.Type.ObjectId,
-        ref:"User",
-        required:true
-    },
+    address: {
+        type: AddressSchema,
+        require: true,
+      },
     invoiceDate:{
         type:Date
     },
-    status:{
+    paymentMethod: {
+        type: String,
+        required: true
+    },
+    paymentStatus: {
+        type: String,
+        required: true
+    },
+    orderStatus:{
         type:String,
         required:true,
         enum:["Pending","Processing","Shipped","Delivered","Cancelled","Return Requested","Returned"]

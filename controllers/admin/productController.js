@@ -171,7 +171,7 @@ const unblockProduct = async (req, res) => {
 
     } catch (error) {
 
-        res.redirect("/pageerror")
+        res.redirect("/admin/pageerror")
 
     }
 }

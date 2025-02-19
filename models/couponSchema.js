@@ -1,4 +1,4 @@
-const mongoose = require(mongoose);
+const mongoose = require("mongoose");
 const {Schema} = mongoose;
 
 
@@ -14,11 +14,11 @@ const couponSchema = new Schema({
         default:Date.now,
         required:true
     },
-    expaireOn:{
+    expireOn:{
         type:Date,
         required:true,
     },
-    offerPrice:{
+    offerPercentage:{
         type:Number,
         required:true,
     },
@@ -26,7 +26,7 @@ const couponSchema = new Schema({
         type:Number,
         required:true,
     },
-    maximumDiscount:{
+    maxDiscount:{
         type:Number,
         required:true,
     },
@@ -35,7 +35,7 @@ const couponSchema = new Schema({
         default:true
     },
     userId:{
-        type:Schema.Type.ObjectId,
+        type:Schema.Types.ObjectId,
         ref:"User"
     },
    

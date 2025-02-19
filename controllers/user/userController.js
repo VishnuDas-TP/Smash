@@ -2,6 +2,7 @@ const User = require("../../models/userSchema");
 const Product = require('../../models/productSchema')
 const Category = require('../../models/categorySchema')
 const Brand = require("../../models/brandSchema")
+const Wishlist = require("../../models/wishlistSchema")
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require("bcrypt")
@@ -297,11 +298,11 @@ const getShoppingPage = async (req,res) => {
 
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // let wishlistProductIds = [];
-        // if (user) {
-        //     const wishlist = await Wishlist.findOne({ userId: user }, { 'products.productId': 1, _id: 0 });
-        //     wishlistProductIds = wishlist ? wishlist.products.map(item => item.productId.toString()) : [];
-        // }
+        let wishlistProductIds = [];
+        if (user) {
+            const wishlist = await Wishlist.findOne({ userId: user }, { 'Products.productId': 1, _id: 0 });
+            wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId.toString()) : [];
+        }
         
 
         res.render('shop', {
@@ -309,7 +310,7 @@ const getShoppingPage = async (req,res) => {
             products: productData,
             totalPages,
             currentPage: parseInt(page),
-            // wishlistProductIds,
+            wishlistProductIds,
             categories,
         });
     } catch (error) {

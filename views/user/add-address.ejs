@@ -4,6 +4,8 @@
     <!-- Include SweetAlert CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <section class="pt-150 pb-150">
@@ -84,96 +86,134 @@
 
 
 <script>
-    $('#addressForm').submit(function (event) {
-        event.preventDefault();
-
-        if (!validateAddressForm()) {
-            return;
-        }
-
-        $.ajax({
-            type: 'POST',
-            url: '/save-address?id=<%= user %>',
-            data: $(this).serialize(),
-            success: function (response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: response.message,
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    window.location.href = '/address';
-                });
-            },
-            error: function () {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'There was an error saving the address.',
-                    confirmButtonText: 'Try Again'
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('addressForm');
+        
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            if (validateAddressForm()) {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(response => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: response.message,
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.href = '/address';
+                    });
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'There was an error saving the address.',
+                        confirmButtonText: 'Try Again'
+                    });
                 });
             }
         });
     });
-
-    function validateAddressForm(event) {
+    
+    function validateAddressForm() {
         // Clear previous error messages
-        document.getElementById('addressTypeErr').innerText = '';
-        document.getElementById('nameErr').innerText = '';
-        document.getElementById('cityErr').innerText = '';
-        document.getElementById('landMarkErr').innerText = '';
-        document.getElementById('stateErr').innerText = '';
-        document.getElementById('pincodeErr').innerText = '';
-        document.getElementById('phoneErr').innerText = '';
-        document.getElementById('altPhoneErr').innerText = '';
-
+        const errorFields = [
+            'addressTypeErr', 'nameErr', 'cityErr', 'landMarkErr',
+            'stateErr', 'pincodeErr', 'phoneErr', 'altPhoneErr'
+        ];
+        errorFields.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.innerText = '';
+        });
+    
         let isValid = true;
-
-        const name = document.getElementById('name').value;
-        if (name.trim() === '') {
-            document.getElementById('nameErr').innerText = 'Name is required.';
+    
+        // Get field values
+        const name = document.getElementById('name').value.trim();
+        const city = document.getElementById('city').value.trim();
+        const landMark = document.getElementById('landMark').value.trim();
+        const state = document.getElementById('state').value.trim();
+        const pincode = document.getElementById('pincode').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const altPhone = document.getElementById('altPhone').value.trim();
+    
+        // Regular Expressions for Validation
+        const namePattern = /^[A-Za-z\s]+$/;
+        const pincodePattern = /^\d{6}$/;
+        const phonePattern = /^\d{10}$/;
+    
+        // Validation functions
+        function showError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId);
+            if (errorElement) {
+                errorElement.innerText = message;
+            }
             isValid = false;
         }
-
-        const city = document.getElementById('city').value;
-        if (city.trim() === '') {
-            document.getElementById('cityErr').innerText = 'City is required.';
-            isValid = false;
+    
+        // Name validation
+        if (!name) {
+            showError('nameErr', 'Name is required.');
+        } else if (!namePattern.test(name)) {
+            showError('nameErr', 'Name should contain only alphabets and spaces.');
         }
-
-        const streetAddress = document.getElementById('landMark').value; 
-        if (streetAddress.trim() === '') {
-            document.getElementById('landMarkErr').innerText = 'LandMark is required.';
-            isValid = false;
+    
+        // City validation
+        if (!city) {
+            showError('cityErr', 'City is required.');
+        } else if (!namePattern.test(city)) {
+            showError('cityErr', 'City should contain only alphabets and spaces.');
         }
-
-        const state = document.getElementById('state').value;
-        if (state.trim() === '') {
-            document.getElementById('stateErr').innerText = 'State is required.';
-            isValid = false;
+    
+        // Landmark validation
+        if (!landMark) {
+            showError('landMarkErr', 'Landmark is required.');
         }
-
-        const pincode = document.getElementById('pincode').value;
-        if (pincode.trim() === '' || pincode.toString().length !== 6) {
-            document.getElementById('pincodeErr').innerText = 'Pincode must be 6 digits.';
-            isValid = false;
+    
+        // State validation
+        if (!state) {
+            showError('stateErr', 'State is required.');
+        } else if (!namePattern.test(state)) {
+            showError('stateErr', 'State should contain only alphabets and spaces.');
         }
-
-        const phone = document.getElementById('phone').value;
-        if (phone.trim() === '' || phone.length < 10) {
-            document.getElementById('phoneErr').innerText = 'Phone number must be at least 10 digits.';
-            isValid = false;
+    
+        // Pincode validation
+        if (!pincode) {
+            showError('pincodeErr', 'Pincode is required.');
+        } else if (!pincodePattern.test(pincode)) {
+            showError('pincodeErr', 'Pincode must be exactly 6 digits.');
         }
-
-        const altPhone = document.getElementById('altPhone').value;
-        if (altPhone !== '' && altPhone.length < 10) {
-            document.getElementById('altPhoneErr').innerText = 'Alternate phone number must be at least 10 digits.';
-            isValid = false;
+    
+        // Phone validation
+        if (!phone) {
+            showError('phoneErr', 'Phone number is required.');
+        } else if (!phonePattern.test(phone)) {
+            showError('phoneErr', 'Phone number must be exactly 10 digits.');
         }
-
+    
+        // Alternate phone validation (optional field)
+        if (altPhone) {
+            if (!phonePattern.test(altPhone)) {
+                showError('altPhoneErr', 'Alternate phone number must be exactly 10 digits.');
+            } else if (phone === altPhone) {
+                showError('altPhoneErr', 'Phone number and alternate phone number must be different.');
+            }
+        }
+    
         return isValid;
     }
-</script>
+    </script>
 
 
 <%- include("../../views/partails/user/footer.ejs") %>

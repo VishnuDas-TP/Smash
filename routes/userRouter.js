@@ -5,6 +5,8 @@ const usercontroller = require('../controllers/user/userController');
 const profilecontroller = require("../controllers/user/profileController")
 const wishlistcontroller = require("../controllers/user/wishlistController")
 const cartcontoller = require("../controllers/user/cartController")
+const checkoutcontoller = require("../controllers/user/checkoutController")
+const ordercontoller = require("../controllers/user/orderController")
 const passport = require("passport");
 const {userAuth} = require('../middlewares/auth')
 
@@ -48,6 +50,8 @@ router.get("/reset-password",profilecontroller.getResetPassPage)
 router.post("/resend-forgot-otp",profilecontroller.ResendOtp)
 router.post("/reset-password",profilecontroller.postNewPassword)
 router.get("/userProfile",userAuth,profilecontroller.userProfile)
+
+// Address Management
 router.get("/address",userAuth,profilecontroller.getAddress)
 router.get("/add-address",userAuth,profilecontroller.getAddAddress)
 router.post("/save-address",userAuth,profilecontroller.saveAddress)
@@ -67,6 +71,15 @@ router.post("/addToCart",cartcontoller.addToCart)
 router.post("/cart/updateCartQuantity",userAuth,cartcontoller.updateQuantity)
 router.get("/showCart/remove",userAuth,cartcontoller.removeFromCart)   
 router.get("/showCart/clearCart",userAuth,cartcontoller.clearCart)   
+
+// CheckOut management
+router.get("/getCheckOut",userAuth,checkoutcontoller.getCheckOut)   
+router.post("/place-order-initial",userAuth,checkoutcontoller.placeOrderInitial )   
+router.get("/order-confirmation",userAuth,checkoutcontoller.orderConfirm)   
+
+// order management
+router.get("/orders",userAuth,ordercontoller.getOrders)   
+router.get('/cancel-order',userAuth,ordercontoller.getOrderCancel)
 
 
 

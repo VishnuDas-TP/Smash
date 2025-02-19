@@ -71,7 +71,7 @@ const getForgotPassPage = async (req,res) => {
         res.render("forgot-password");
         
     } catch (error) {
-        res.redirect("/pageNotPage")
+        res.redirect("/pageNotFound")
     }
 }
 
@@ -254,7 +254,7 @@ const saveAddress = async (req, res) => {
             await userAddress.save();
 
         }
-        res.redirect('/address')
+        res.status(200).json({message:"Address saved successfully"})
 
     } catch (error) {
         console.error('error is addaddress', error);
