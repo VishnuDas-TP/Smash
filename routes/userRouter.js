@@ -75,7 +75,11 @@ router.get("/showCart/clearCart",userAuth,cartcontoller.clearCart)
 // CheckOut management
 router.get("/getCheckOut",userAuth,checkoutcontoller.getCheckOut)   
 router.post("/place-order-initial",userAuth,checkoutcontoller.placeOrderInitial )   
+router.post("/create-order",userAuth,checkoutcontoller.createOrder )   
 router.get("/order-confirmation",userAuth,checkoutcontoller.orderConfirm)   
+router.get("/payment-failed",userAuth,checkoutcontoller.paymentFailed)   
+router.post("/verify-payment",userAuth,checkoutcontoller.verifyPayment)   
+router.post("/place-order",userAuth,checkoutcontoller.placeOrder)   
 
 // order management
 router.get("/orders",userAuth,ordercontoller.getOrders)   

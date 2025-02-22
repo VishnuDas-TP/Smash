@@ -447,16 +447,16 @@
                                 </div>
 
                                 <!-- Hidden Fields -->
-                                <!-- <input type="hidden" name="cart" value='<%= JSON.stringify(cart ? cart.items : []) %>'>
+                                 <input type="hidden" name="cart" value='<%= JSON.stringify(cart ? cart.items : []) %>'>
                                 <input type="hidden" name="totalPrice" value="<%= totalPrice %>">
                                 <input type="hidden" name="finalPrice" id="finalPrice" value="<%= totalPrice %>">
                                 <input type="hidden" name="discount" id="discount">
-                                <input type="hidden" name="coupon" id="coupon"> -->
+                                <input type="hidden" name="coupon" id="coupon"> 
                                 <% if (product) { %>
                                     <input type="hidden" name="singleProduct" value="<%= JSON.stringify(product) %>">
                                     <input type="hidden" name="singleProductQty" value="<%= singleProductQty %>">
                                     <% } %>
-                                        <input type="hidden" name="addressId" id="addressId">
+                                        <input type="hidden" name="addressId" id="addressId"> 
 
                                         <button type="submit" class="btn-place-order" >
                                             Place Order
@@ -659,17 +659,17 @@
                 });
 
                 if (paymentMethod === 'COD') {
-                    // console.log('1000 than');
-                    // const finalPrice = document.getElementById('finalPrice').value;
-                    // if (finalPrice > 1000) {
-                    //     return Swal.fire({
-                    //         title: 'Error',
-                    //         text: "Caash on Delivery is not available for products above ₹ 1,000",
-                    //         icon: 'error',
-                    //         showConfirmButton: true,
-                    //         confirmButtonText: "OK",
-                    //     });
-                    // }
+                    console.log('1000 than');
+                    const finalPrice = document.getElementById('finalPrice').value;
+                    if (finalPrice > 1000) {
+                        return Swal.fire({
+                            title: 'Error',
+                            text: "Cash on Delivery is not available for products above ₹ 1,000",
+                            icon: 'error',
+                            showConfirmButton: true,
+                            confirmButtonText: "OK",
+                        });
+                    }
                     const codResponse = await fetch('/place-order-initial', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -696,138 +696,142 @@
             }
 
 
-        // }
-        // async function processOnlinePayment(formData) {
-        //     try {
-        //         const finalPriceElement = document.getElementById('finalPrice');
-        //         if (!finalPriceElement) {
-        //             throw new Error('Price information is missing');
-        //         }
+        }
+        async function processOnlinePayment(formData) {
+            try {
+                const finalPriceElement = document.getElementById('finalPrice');
+                if (!finalPriceElement) {
+                    throw new Error('Price information is missing');
+                }
 
-        //         const finalPrice = parseFloat(finalPriceElement.value);
-        //         if (isNaN(finalPrice) || finalPrice <= 0) {
-        //             throw new Error('Invalid order amount');
-        //         }
+                const finalPrice = parseFloat(finalPriceElement.value);
+                if (isNaN(finalPrice) || finalPrice <= 0) {
+                    throw new Error('Invalid order amount');
+                }
 
-        //         const addressId = formData.get('addressId');
-        //         if (!addressId) {
-        //             throw new Error('Please select a delivery address');
-        //         }
+                const addressId = formData.get('addressId');
+                if (!addressId) {
+                    throw new Error('Please select a delivery address');
+                }
 
-        //         const response = await fetch('/create-order', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //             },
-        //             body: JSON.stringify({
-        //                 amount: finalPrice,
-        //                 addressId: addressId
-        //             })
-        //         });
+                const response = await fetch('/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount: finalPrice,
+                        addressId: addressId
+                    })
+                });
 
-        //         if (!response.ok) {
-        //             const errorData = await response.json();
-        //             throw new Error(errorData.message || 'Failed to create payment order');
-        //         }
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to create payment order');
+                }
 
-        //         const order = await response.json();
-        //         if (!order.success) {
-        //             throw new Error(order.message || 'Failed to initialize payment');
-        //         }
+                const order = await response.json();
+                if (!order.success) {
+                    throw new Error(order.message || 'Failed to initialize payment');
+                }
 
-        //         await initializeRazorpay(order, formData);
-        //     } catch (error) {
-        //         console.error('Payment processing error:', error);
-        //         Swal.fire({
-        //             title: 'Payment Error',
-        //             text: error.message || 'Failed to process payment',
-        //             icon: 'error'
-        //         });
-        //         throw error;
-        //     }
-        // }
-        // async function initializeRazorpay(orderDetails, formData) {
-        //     try {
-        //         const initialOrderResponse = await fetch('/place-order-initial', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //             },
-        //             body: JSON.stringify({
-        //                 ...Object.fromEntries(formData),
-        //                 paymentMethod: 'Online',
-        //                 paymentStatus: 'Pending'
-        //             })
-        //         });
+                await initializeRazorpay(order, formData);
+            } catch (error) {
+                console.error('Payment processing error:', error);
+                Swal.fire({
+                    title: 'Payment Error',
+                    text: error.message || 'Failed to process payment',
+                    icon: 'error'
+                });
+                throw error;
+            }
+        }
+        async function initializeRazorpay(orderDetails, formData) {
+            try {
+                const initialOrderResponse = await fetch('/place-order-initial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...Object.fromEntries(formData),
+                        paymentMethod: 'Online',
+                        paymentStatus: 'Pending'
+                    })
+                });
 
-        //         const initialOrderData = await initialOrderResponse.json();
-        //         if (!initialOrderData.success) {
-        //             throw new Error(initialOrderData.message || 'Failed to initialize order');
-        //         }
+                const initialOrderData = await initialOrderResponse.json();
+                if (!initialOrderData.success) {
+                    throw new Error(initialOrderData.message || 'Failed to initialize order');
+                }
 
-        //         const options = {
-        //             key: initialOrderData.key,
-        //             amount: orderDetails.amount,
-        //             currency: orderDetails.currency || 'INR',
-        //             order_id: orderDetails.id,
-        //             handler: async function (response) {
-        //                 try {
-        //                     const verifyResponse = await fetch('/verify-payment', {
-        //                         method: 'POST',
-        //                         headers: { 'Content-Type': 'application/json' },
-        //                         body: JSON.stringify({
-        //                             orderId: initialOrderData.orderId,
-        //                             razorpay_payment_id: response.razorpay_payment_id,
-        //                             razorpay_order_id: response.razorpay_order_id,
-        //                             razorpay_signature: response.razorpay_signature
-        //                         })
-        //                     });
+                const options = {
+                    key: initialOrderData.key,
+                    amount: orderDetails.amount,
+                    currency: orderDetails.currency || 'INR',
+                    order_id: orderDetails.id,
+                    handler: async function (response) {
+                        try {
+                            const verifyResponse = await fetch('/verify-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    orderId: initialOrderData.orderId,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            });
 
-        //                     const verifyResult = await verifyResponse.json();
-        //                     if (!verifyResult.success) throw new Error(verifyResult.message || 'Payment verification failed');
+                            const verifyResult = await verifyResponse.json();
+                            if (!verifyResult.success) throw new Error(verifyResult.message || 'Payment verification failed');
 
-        //                     const finalOrderResponse = await fetch('/place-order', {
-        //                         method: 'POST',
-        //                         headers: { 'Content-Type': 'application/json' },
-        //                         body: JSON.stringify({
-        //                             orderId: initialOrderData.orderId,
-        //                             paymentSuccess: true,
-        //                             paymentDetails: {
-        //                                 razorpay_payment_id: response.razorpay_payment_id,
-        //                                 razorpay_order_id: response.razorpay_order_id,
-        //                                 razorpay_signature: response.razorpay_signature
-        //                             }
-        //                         })
-        //                     });
+                            const finalOrderResponse = await fetch('/place-order', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    orderId: initialOrderData.orderId,
+                                    paymentSuccess: true,
+                                    paymentDetails: {
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature
+                                    }
+                                })
+                            });
 
-        //                     const finalOrderData = await finalOrderResponse.json();
-        //                     if (!finalOrderData.success) throw new Error(finalOrderData.message || 'Failed to finalize order');
+                            const finalOrderData = await finalOrderResponse.json();
+                            if (!finalOrderData.success) throw new Error(finalOrderData.message || 'Failed to finalize order');
 
-        //                     window.location.href = `/order-confirmation?id=${initialOrderData.orderId}`;
-        //                 } catch (error) {
-        //                     window.location.href = `/payment-failed?error=${encodeURIComponent(error.message)}&id=${initialOrderData.orderId}`;
-        //                 }
-        //             },
-        //             modal: {
-        //                 ondismiss: function () {
-        //                     window.location.href = `/payment-failed?message=${encodeURIComponent('Payment was cancelled by the user')}&id=${initialOrderData.orderId}`;
-        //                 }
-        //             }
-        //         };
+                            window.location.href = `/order-confirmation?id=${initialOrderData.orderId}`;
+                        } catch (error) {
+                            console.log(error);
+                            
+                            window.location.href = `/payment-failed?error=${encodeURIComponent(error.message)}&id=${initialOrderData.orderId}`;
+                        }
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            window.location.href = `/payment-failed?message=${encodeURIComponent('Payment was cancelled by the user')}&id=${initialOrderData.orderId}`;
+                        }
+                    }
+                };
 
-        //         const razorpay = new Razorpay(options);
-        //         razorpay.open();
-        //     } catch (error) {
-        //         window.location.href = `/payment-failed?error=${encodeURIComponent(error.message)}`;
-        //     }
-        // }
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+            } catch (error) {
+                console.log(error);
+                
+                // window.location.href = `/payment-failed?error=${encodeURIComponent(error.message)}`;
+            }
+        }
         // async function processWalletPayment(formData) {
         //     try {
         //         const response = await fetch('/wallet-payment', {
         //             method: 'POST',
         //             headers: { 'Content-Type': 'application/json' },
         //             body: JSON.stringify(Object.fromEntries(formData))
-        //         });
+        //         }); 
 
         //         const result = await response.json();
 
@@ -935,7 +939,7 @@
         //         discount: 0,
         //         final: originalPrice
         //     });
-        }
+        // }
 
 
     </script>

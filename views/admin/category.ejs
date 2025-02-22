@@ -157,26 +157,29 @@
                                                 </td>
                                                 <td class="text-start">
                                                     <% if(category.isListed){ %>
-                                                    <span class="badge rounded-pill alert-success"
-                                                        style="width: 60px">Listed</span>
+                                                        <span class="badge rounded-pill alert-success"
+                                                            style="width: 60px">Listed</span>
                                                         <% }else{ %>
-                                                    <span class="badge rounded-pill alert-danger"
-                                                        style="width: 60px">Unlisted</span>
-                                                        <% } %>
+                                                            <span class="badge rounded-pill alert-danger"
+                                                                style="width: 60px">Unlisted</span>
+                                                            <% } %>
                                                 </td>
                                                 <td class="text-start">
                                                     <% if(category.isListed){ %>
-                                                    <button class="btn btn-danger" style="width: 70px">
-                                                        <a href="/admin/listCategory?id=<%= category._id %>" class="text-white">Unlist</a>
-                                                    </button>
-                                                    <% }else{ %>
-                                                    <button class="btn btn-success" style="width: 70px">
-                                                        <a href="/admin/unlistCategory?id=<%= category._id %>" class="text-white">List</a>
-                                                    </button>
-                                                    <% } %>
+                                                        <button class="btn btn-danger" style="width: 70px">
+                                                            <a href="/admin/listCategory?id=<%= category._id %>"
+                                                                class="text-white">Unlist</a>
+                                                        </button>
+                                                        <% }else{ %>
+                                                            <button class="btn btn-success" style="width: 70px">
+                                                                <a href="/admin/unlistCategory?id=<%= category._id %>"
+                                                                    class="text-white">List</a>
+                                                            </button>
+                                                            <% } %>
                                                 </td>
                                                 <td class="text-start">
-                                                    <a href="/admin/editCategory?id=<%= category._id %>" class="btn btn-info text-white">Edit</a>
+                                                    <a href="/admin/editCategory?id=<%= category._id %>"
+                                                        class="btn btn-info text-white">Edit</a>
                                                 </td>
                                             </tr>
                                             <% }) %>
@@ -215,76 +218,73 @@
 
         <script>
 
-            function handleFormSubmit(event) {
-                event.preventDefault();
-                if (!validateForm()) {
-                    return
-                }
-                const name = document.getElementsByName("name")[0].value;
-                const description = document.getElementById("descriptionId").value;
+function handleFormSubmit(event) {
+    event.preventDefault();
+    if (!validateForm()) {
+        return;
+    }
+    const name = document.getElementsByName("name")[0].value;
+    const description = document.getElementById("descriptionId").value;
 
-                fetch('/admin/addCategory', {
-                    method: "POST",
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify({ name, description })
-                })
-                    .then(Response => {
-                        if (!Response.ok) {
-                            return Response.json().then(err => {
-                                throw new Error(err.error);
-                            })
-                        }
-                        return Response.json();
-                    })
-                    .then(data => {
-                        location.reload();
-                    })
-                    .catch(error => {
-                        if (error.message === "Category already exist") {
-                            Swal.fire({
-
-                                icon: 'error',
-                                title: "Oops",
-                                text: "Category already exist"
-                            })
-                        } else {
-                            Swal.fire({
-
-                                icon: 'error',
-                                title: "Oops",
-                                text: "An error occured while adding the Category"
-                            })
-                        }
-                    });
-            }
+    fetch('/admin/addCategory', {
+        method: "POST",
+        headers: {
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({ name, description })
+    })
+    .then(Response => {
+        if (!Response.ok) {
+            return Response.json().then(err => {
+                throw new Error(err.error);
+            });
+        }
+        return Response.json();
+    })
+    .then(data => {
+        location.reload();
+    })
+    .catch(error => {
+        
+        if (error.message === "Category already exists") { 
+            Swal.fire({
+                icon: 'error',
+                title: "Oops",
+                text: "Category already exists" 
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: "Oops",
+                text: "An error occurred while adding the Category"
+            });
+        }
+    });
+}
 
 
             function validateForm() {
                 clearErrorMessages();
                 const name = document.getElementsByName("name")[0].value.trim();
                 const description = document.getElementById("descriptionId").value.trim();
-                isValid = true;
+                let isValid = true;
 
                 if (name === "") {
-                    displayErrorMessage("name-error", "please enter a name");
+                    displayErrorMessage("name-error", "Please enter a name");
+                    isValid = false;
+                } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+                    displayErrorMessage("name-error", "Category name should contain only alphabetic characters");
                     isValid = false;
                 }
-                else if (!/^[a-zA-Z\s]+$/.test(name)) {
-                    displayErrorMessage: (
-                        "name-error",
-                        "Category name should contain only alphabetic charcters"
-                    );
-                    isValid = false;
-                }
-                if (description === "") {
-                    displayErrorMessage("description-error", "Please enter  description");
-                    isValid = false;
-                }
-                return isValid;
 
+                if (description === "") {
+                    displayErrorMessage("description-error", "Please enter a description");
+                    isValid = false;
+                }
+
+                return isValid;
             }
+
 
             function displayErrorMessage(elementId, message) {
                 var errorElements = document.getElementById(elementId);
@@ -355,7 +355,7 @@
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify({ catId: categoryId }),
-                    }); 
+                    });
                     const data = await response.json();
 
                     if (response.ok) {
