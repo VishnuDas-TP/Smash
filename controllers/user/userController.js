@@ -303,6 +303,8 @@ const getShoppingPage = async (req,res) => {
             const wishlist = await Wishlist.findOne({ userId: user }, { 'Products.productId': 1, _id: 0 });
             wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId.toString()) : [];
         }
+        console.log(wishlistProductIds);
+        
         
 
         res.render('shop', {

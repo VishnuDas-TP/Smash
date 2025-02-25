@@ -5,7 +5,7 @@ const Wishlist = require("../../models/wishlistSchema");
 const addToWishlist= async (req,res)=>{
     try {
         const userId=req.session.user;
-        const productId=req.query.id;
+        const productId=req.body.id;
         if(!userId&&!productId){
             console.log('userId or productId is missing');
             return res.redirect('/')

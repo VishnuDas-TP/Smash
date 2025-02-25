@@ -16,6 +16,7 @@ router.use(async(req, res, next) => {
     next();
 });
 
+
 // Error Management
 router.get("/pageNotFound",usercontroller.pageNotFound)
 
@@ -61,7 +62,7 @@ router.get("/delete-address",userAuth,profilecontroller.deleteAddress)
 
 
 // wishlist management
-router.get("/addTowishlist",userAuth,wishlistcontroller.addToWishlist)
+router.post("/addTowishlist",wishlistcontroller.addToWishlist)
 router.get("/wishlist",userAuth,wishlistcontroller.getWishlist)
 router.delete("/removeFromWishlist",userAuth,wishlistcontroller.removeFromWishlist)
 

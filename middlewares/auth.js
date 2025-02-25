@@ -4,6 +4,10 @@ const User = require("../models/userSchema");
 
 const userAuth = (req,res,next)=>{
 
+    if (req.path === "/login") {
+        return next();
+    }
+
     if(req.session.user){
         User.findById(req.session.user)
         .then(data=>{
