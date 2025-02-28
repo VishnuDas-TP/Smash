@@ -87,5 +87,11 @@ router.get("/orders",userAuth,ordercontoller.getOrders)
 router.get('/cancel-order',userAuth,ordercontoller.getOrderCancel)
 
 
+// Coupon Management
+router.get('/coupons',userAuth,ordercontoller.getCoupons)
+router.post('/apply-coupon',userAuth,ordercontoller.applyCoupon)
+router.post('/remove-coupon',userAuth,ordercontoller.removeCoupon);
+
+
 
 module.exports=router

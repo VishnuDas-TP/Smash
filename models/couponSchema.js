@@ -34,10 +34,10 @@ const couponSchema = new Schema({
         type:Boolean,
         default:true
     },
-    userId:{
+    userId:[{
         type:Schema.Types.ObjectId,
-        ref:"User"
-    },
+        ref:'User'
+    }]
    
 })
 
