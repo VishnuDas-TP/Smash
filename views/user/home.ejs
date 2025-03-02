@@ -99,15 +99,42 @@
                                                 <h2><a href="/productdetails?id=<%= product._id%>"><%=product.productName%></a></h2>
                                                 <div class="product-rate ">
                                                     <div class="product-rating" style="width:70%">
-                                                   
-                                                    <!-- <span>
-                                                        <span><%=product.productOffer%></span>
-                                                    </span> -->
                                                 </div>
                                                 </div>
                                                 <div class="product-price">
-                                                    <span><%=product.salePrice%></span>
-                                                    <span class="old-price"><%=product.regularPrice%></span>
+                                                    <% 
+                                                    let hasOffer = false;
+                                                    let maxDiscountPercentage = 0;
+                                                    let discountedPrice = product.regularPrice;
+                                                    let originalPrice = product.regularPrice;
+                                                    
+                                                    // Check for product offer
+                                                    if(product.productOffer && product.productOffer > 0) {
+                                                        hasOffer = true;
+                                                        maxDiscountPercentage = product.productOffer;
+                                                    }
+                                                    
+                                                    // Check for category offer and compare with product offer
+                                                    if(product.category && product.category.categoryOffer && product.category.categoryOffer > 0) {
+                                                        hasOffer = true;
+                                                        // If category offer is greater, use that instead
+                                                        if(product.category.categoryOffer > maxDiscountPercentage) {
+                                                            maxDiscountPercentage = product.category.categoryOffer;
+                                                        }
+                                                    }
+                                                    
+                                                    // Calculate the discounted price if there's an offer
+                                                    if(hasOffer) {
+                                                        // Calculate discount amount
+                                                        let discountAmount = (originalPrice * maxDiscountPercentage) / 100;
+                                                        discountedPrice = originalPrice - discountAmount;
+                                                    }
+                                                    %>
+                                                    
+                                                    <span><%=discountedPrice%></span>
+                                                    <% if(hasOffer) { %>
+                                                        <span class="old-price"><%=originalPrice%></span>
+                                                    <% } %>
                                                 </div>
                                                 <div class="product-action-1 show">
                                                     <a aria-label="Add To Cart" class="action-btn hover-up"

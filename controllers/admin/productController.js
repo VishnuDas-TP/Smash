@@ -147,6 +147,70 @@ const getAllProducts = async (req, res) => {
     }
 
 }
+const addProductOffer = async (req, res) => {
+    try {
+        const { productId, percentage } = req.body;
+       
+
+        // Find the product and its category
+        const findProduct = await Product.findOne({ _id: productId });
+
+        const findCategory = await Category.findOne({ _id: findProduct.category });
+
+        // Check if the category already has an offer
+        if (findCategory.categoryOffer > percentage) {
+            return res.json({ status: false, message: "This product's category already has a category offer." });
+        }
+
+        // Calculate the discount and update sale price (subtract from the original price)
+        const discount = Math.floor(findProduct.regularPrice * (percentage / 100));
+        findProduct.salePrice = findProduct.salePrice - discount;
+       
+
+        // Store the product offer percentage
+        findProduct.productOffer = parseInt(percentage);
+
+        await findProduct.save();
+
+        // Reset the category offer to 0
+        findCategory.categoryOffer = 0;
+        await findCategory.save();
+
+        res.json({ status: true });
+
+    } catch (error) {
+        console.error(error);
+        res.redirect('/admin/pageerror');
+    }
+};
+
+const removeProductOffer = async (req, res) => {
+    try {
+        const { productId } = req.body;
+        
+        // Find the product to remove the offer
+        const findProduct = await Product.findOne({ _id: productId });
+
+        // Get the discount percentage and calculate the restored price
+        const percentage = findProduct.productOffer;
+        
+
+        // Restore the original sale price
+        findProduct.salePrice = ((findProduct.salePrice *100)/(100-percentage))
+
+        // Remove the product offer
+        findProduct.productOffer = 0;
+
+        // Save the updated product
+        await findProduct.save();
+
+        res.json({ status: true });
+
+    } catch (error) {
+        console.error(error);
+        res.redirect('/admin/pageerror');
+    }
+};
 
 const blockProduct = async (req, res) => {
 
@@ -279,8 +343,8 @@ module.exports = {
     unblockProduct,
     getEditProduct,
     editProduct,
-    deleteSingleImage
-
-
+    deleteSingleImage,
+    addProductOffer,
+    removeProductOffer,
 }
 

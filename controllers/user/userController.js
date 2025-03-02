@@ -291,22 +291,24 @@ const getShoppingPage = async (req,res) => {
 
         const totalProducts = await Product.countDocuments(filterConditions);
         const productData = await Product.find(filterConditions)
-            .populate('category', 'name')
+            .populate('category')
             .sort({ createOn: -1 }) // Newest first
             .skip(skip)
             .limit(limit);
+            
+            
 
         const totalPages = Math.ceil(totalProducts / limit);
+        
+        
 
         let wishlistProductIds = [];
         if (user) {
             const wishlist = await Wishlist.findOne({ userId: user }, { 'Products.productId': 1, _id: 0 });
             wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId.toString()) : [];
         }
-        console.log(wishlistProductIds);
         
         
-
         res.render('shop', {
             user,
             products: productData,
@@ -314,6 +316,7 @@ const getShoppingPage = async (req,res) => {
             currentPage: parseInt(page),
             wishlistProductIds,
             categories,
+            
         });
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -333,12 +336,12 @@ const getProductDetails = async (req, res) => {
       
       
   
-      const productOffer = productData.productOffer || 0;
+      const productOffer = productData ? productData.productOffer || 0 : 0;
       const categoryOffer = category ? category.categoryOffer || 0 : 0;
       const highestOffer = Math.max(productOffer, categoryOffer);
-  
       const discount = (productData.regularPrice * highestOffer) / 100;
       const finalSalePrice = productData.regularPrice - discount;
+      
   
       const recommendedProducts = await Product.find({
         category: productData.category,
@@ -406,7 +409,7 @@ const getProductDetails = async (req, res) => {
          
         const totalProducts = await Product.countDocuments(query);
         const totalPages = Math.ceil(totalProducts / limit);
-        console.log(products);
+        
         
         // Send the filtered and sorted products as JSON
         res.json({

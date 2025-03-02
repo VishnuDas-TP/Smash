@@ -2,6 +2,7 @@ const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema")
 const User = require("../../models/userSchema");
 const Coupon = require("../../models/couponSchema")
+const Wallet = require("../../models/walletSchema")
 
 const getOrders= async (req,res)=>{
     try {
@@ -61,7 +62,31 @@ const getOrderCancel = async (req, res) => {
         if (order.paymentMethod === 'COD') {
             await Order.findByIdAndUpdate(id, { $set: { paymentStatus: 'Failed' } });
         }
+        else if(order.paymentMethod === 'Online' && order.paymentStatus === 'Completed') {
+            const refundAmount = order.finalAmount;
+            console.log(refundAmount);
 
+            // Update the user's wallet
+            const wallet = await Wallet.findOneAndUpdate(
+                { userId },
+                {
+                    $inc: { balance: refundAmount }, // Increment wallet balance
+                    $push: {
+                        transactions: {
+                            type: 'Refund',
+                            amount: refundAmount,
+                            orderId: id,
+                            description: `Refund for cancelled order #${id}`,
+                            status: 'Completed', // Assuming the refund is instant
+                        },
+                    },
+                    lastUpdated: new Date(),
+                },
+                { new: true, upsert: true } // Create wallet if not present
+            );
+
+            console.log(`Refund of ₹${refundAmount} added to wallet for user ${userId}`);
+        }
         // Restore stock for each product in the order
         for (const item of order.orderItems) {
             const product = await Product.findByIdAndUpdate(
@@ -70,11 +95,6 @@ const getOrderCancel = async (req, res) => {
                 { new: true } // Returns the updated document
             );
             
-            
-            console.log(product);
-            console.log(item.product);
-            console.log(item.quantity);
-           
         }
 
         // Update order status
@@ -112,13 +132,13 @@ const applyCoupon=async (req,res)=>{
 
         }
         const discount = parseFloat(coupon.offerPercentage);
-        console.log(discount);
+        console.log(discount,"discount from applycoupon");
         
         if (isNaN(discount)) {
             return res.status(400).json({ success: false, message: "Invalid discount value" });
         }
         const discountAmount = (totalPrice * discount) / 100;
-        console.log(discountAmount);
+        console.log(discountAmount,"discountAmount applycoupon");
         
         
         const finalTotal = totalPrice - discountAmount;
@@ -152,6 +172,7 @@ const removeCoupon = async (req, res) => {
       res.status(500);
     }
   }
+  
   const getCoupons=async (req,res)=>{
     try {
         const user = req.session.user;

@@ -7,6 +7,8 @@ const wishlistcontroller = require("../controllers/user/wishlistController")
 const cartcontoller = require("../controllers/user/cartController")
 const checkoutcontoller = require("../controllers/user/checkoutController")
 const ordercontoller = require("../controllers/user/orderController")
+const walletController = require('../controllers/user/walletController');
+
 const passport = require("passport");
 const {userAuth} = require('../middlewares/auth')
 
@@ -92,6 +94,9 @@ router.get('/coupons',userAuth,ordercontoller.getCoupons)
 router.post('/apply-coupon',userAuth,ordercontoller.applyCoupon)
 router.post('/remove-coupon',userAuth,ordercontoller.removeCoupon);
 
+// Wallet Mangement
+router.get('/wallet',userAuth, walletController.loadWallet);
+router.post('/create-wallet',userAuth,walletController.createWallet)
 
 
 module.exports=router

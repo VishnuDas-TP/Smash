@@ -27,6 +27,7 @@ const getCheckOut = async (req, res) => {
         let cart = null;
         let product = null;
         let totalPrice = 0;
+        let discount =0;
 
 
         if (singleProductId) {
@@ -44,11 +45,17 @@ const getCheckOut = async (req, res) => {
             }
         }
 
+        let gstAmount = (totalPrice * 18)/100
+        let totalWithGst = totalPrice + gstAmount
+
         res.render("checkout", {
             address: address.address,
             product,
             cart,
             totalPrice,
+            gstAmount,
+            discount,
+            totalWithGst,
             singleProductQty,
             singleProductId
         })
@@ -70,8 +77,15 @@ const placeOrderInitial = async (req, res) => {
             paymentMethod,
             paymentStatus,
             singleProduct, // Single product ID field
-            singleProductQty // Quantity for the single product order
+            singleProductQty, // Quantity for the single product order
+            totalPrice,
+            finalPrice,
+            coupon,
+            discount,
+
         } = req.body;
+        // console.log(req.body);
+        
 
         singleProduct && (singleProduct = JSON.parse(singleProduct));
 
@@ -142,8 +156,7 @@ const placeOrderInitial = async (req, res) => {
                 price: item.productId.salePrice
             }));
 
-            // Calculate cart subtotal
-            subtotal = cart.items.reduce((total, item) => total + (item.productId.salePrice * item.quantity), 0);
+            
 
             // **Check stock availability for all products**
             for (const item of cart.items) {
@@ -164,8 +177,7 @@ const placeOrderInitial = async (req, res) => {
             }
         }
 
-        let discount = 0; // Apply any discounts if necessary
-        const total = subtotal - discount;
+        
 
         // Create new order
         const order = new Order({
@@ -175,9 +187,13 @@ const placeOrderInitial = async (req, res) => {
             paymentMethod,
             paymentStatus,
             orderStatus: 'Pending',
-            totalPrice: subtotal,
-            finalAmount: total,
+            discount,
+            totalPrice,
+            finalAmount : finalPrice,
+            couponCode: coupon,
+            couponApplied: Boolean(coupon && discount),
             orderedAt: new Date()
+            
         });
 
         await order.save();
@@ -267,7 +283,7 @@ const createOrder = async (req, res) => {
             .randomBytes(16)
             .toString('hex');
 
-            console.log('recept',receipt);
+            // console.log('recept',receipt);
 
         const options = {
             amount: amountInPaise,
@@ -291,6 +307,8 @@ const createOrder = async (req, res) => {
             currency: razorpayOrder.currency,
             receipt: razorpayOrder.receipt
         });
+        console.log(razorpayOrder.amount,"razorpayOrder.amount createorder");
+        
 
     } catch (error) {
         console.error('Razorpay order creation error:', error);
