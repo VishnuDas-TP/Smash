@@ -7,7 +7,7 @@ const productController = require("../controllers/admin/productController");
 const brandController = require("../controllers/admin/brandController")
 const orderController = require("../controllers/admin/orderController")
 const couponController = require("../controllers/admin/couponController")
-
+const saleReportController = require("../controllers/admin/salesReportcontroller")
 
 const {userAuth,adminAuth} = require("../middlewares/auth")
 
@@ -62,6 +62,11 @@ router.post('/update-order-status',orderController.updateOrderStatus);
 router.get("/getCoupon",couponController.getCoupon)
 router.post('/add-coupon',couponController.addCoupon)
 router.get('/delete-coupon/:id',couponController.deleteCoupon)
+
+router.get('/saleReport',saleReportController.getSaleReport)
+router.get('/salesReportPDF',saleReportController.pdfGenerate)
+router.get('/salesReportExcel',saleReportController.excelGenerate)
+router.get('/filterSales',saleReportController.getSaleReportFilter)
 
 
 

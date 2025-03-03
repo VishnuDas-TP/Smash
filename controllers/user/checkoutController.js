@@ -19,6 +19,8 @@ const getCheckOut = async (req, res) => {
 
         const userId = req.session.user
         const address = await Address.findOne({ userId: userId }) || [];
+        console.log(address.length,"sadfghj");
+        
 
         const singleProductId = req.query.productId;
         const singleProductQty = req.query.quantity;
@@ -49,7 +51,7 @@ const getCheckOut = async (req, res) => {
         let totalWithGst = totalPrice + gstAmount
 
         res.render("checkout", {
-            address: address.address,
+            address: address.address ? address.address || [] : [] ,
             product,
             cart,
             totalPrice,

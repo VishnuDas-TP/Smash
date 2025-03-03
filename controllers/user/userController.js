@@ -3,10 +3,23 @@ const Product = require('../../models/productSchema')
 const Category = require('../../models/categorySchema')
 const Brand = require("../../models/brandSchema")
 const Wishlist = require("../../models/wishlistSchema")
+const Wallet = require("../../models/walletSchema")
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
 const bcrypt = require("bcrypt")
 
+
+function generateReferalCode(length) {
+    let result = '';
+    const characters = 'abcdef0123456789';
+  
+    for (let i = 0; i < length; i++) {
+      result += characters[Math.floor(Math.random() * characters.length)];
+    }
+  
+    return result;
+  
+  }
 
 const pageNotFound = async (req, res) => {
 
@@ -162,7 +175,7 @@ const signup = async (req, res) => {
 
     try {
 
-        const { name, email, phone, password, confirm_password } = req.body;
+        const { name, email, phone, password,referal, confirm_password } = req.body;
 
         if (password !== confirm_password) {
             return res.render("signup", { message: "Password do not match" });
@@ -182,7 +195,7 @@ const signup = async (req, res) => {
         }
 
         req.session.userOtp = otp;
-        req.session.userData = { name,email,phone,password }
+        req.session.userData = { name,email,phone,referal,password }
 
         res.render("verify-otp");
         console.log("OTP sent : ", otp);
@@ -218,16 +231,57 @@ const verifyOtp = async (req, res) => {
             // console.log(user);
 
             const passwordHash = await securePassword(user.password);
+            const referalCode = generateReferalCode(8);
+
+            let refererBonus = 120;
+            let newUserBonus = 100;
+            if (user.referal) {
+                const refererUser = await User.findOne({ referalCode: user.referal });
+        
+                if (refererUser) {
+                  await Wallet.findOneAndUpdate(
+                    { userId: refererUser._id },
+                    {
+                      $inc: { balance: refererBonus },
+                      $push: {
+                        transactions: {
+                          type: "Referal",
+                          amount: refererBonus,
+                          description: "Referral bonus for referring a new user"
+                        }
+                      }
+                    },
+                    { upsert: true }
+                  );
+                }
+            }
 
             const saveUserData = new User({
-                name: user.name,
+                name: user.name,   
                 email: user.email,
                 phone: user.phone,
-                password: passwordHash
-            })
+                password: passwordHash,
+                referalCode
+            });
+
             await saveUserData.save();
+            await Wallet.create({
+                userId: saveUserData._id,
+                balance: user.referal ? newUserBonus : 0,
+                transactions: user.referal
+                  ? [{
+                    type: "Referal",
+                    amount: newUserBonus,
+                    description: "Referral bonus for signing up with a referral code"
+                  }]
+                  : []
+              });
             req.session.user = saveUserData._id;
-            res.json({ success: true, redirectUrl: "/" })
+
+            return res.json({
+                success: true,
+                redirectUrl: '/'
+            });
         }
         else {
             res.status(400).json({ suceess: false, message: "Invalid otp, Please try again" })
