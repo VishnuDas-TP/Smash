@@ -350,9 +350,8 @@
                                                             <h5 class="mb-1">
                                                                 <%= product.productName %>
                                                             </h5>
-                                                            <p class="mb-1">Quantity: 1</p>
-                                                            <p class="mb-0 text-success">₹<%=
-                                                                    product.salePrice.toLocaleString() %>
+                                                            <p class="mb-1">Quantity: <%= singleProductQty %></p>
+                                                            <p class="mb-0 text-success">₹<%=totalPrice.toLocaleString() %>
                                                             </p>
                                                         </div>
                                                     </div>
@@ -378,7 +377,7 @@
 
                                 </div><br>
                                 <div>
-                                    <a href="/coupons" class="btn btn-success">Show Available coupons</a>
+                                    <a href="/coupons?productId=<%= product._id %>&quantity=<%= singleProductQty %>" class="btn btn-success">Show Available coupons</a>
                                 </div>
                             </div>
 

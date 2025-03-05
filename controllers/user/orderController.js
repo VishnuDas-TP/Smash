@@ -175,6 +175,9 @@ const removeCoupon = async (req, res) => {
   
   const getCoupons=async (req,res)=>{
     try {
+        productId = req.query.productId;
+        quantity = req.query.quantity;
+        
         const user = req.session.user;
         if(!user){
         return res.redirect('/login');
@@ -187,7 +190,9 @@ const removeCoupon = async (req, res) => {
         expireOn:{$gt:currentDate}
         });
         
-        res.render('couponList',{coupons});
+        res.render('couponList',{
+            coupons,
+        });
     } catch (error) {
         
     }
