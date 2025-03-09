@@ -116,6 +116,8 @@ try {
     productsData = productsDataElem ? JSON.parse(productsDataElem.value) : [];
     categoriesData = categoriesDataElem ? JSON.parse(categoriesDataElem.value) : [];
     brandsData = brandsDataElem ? JSON.parse(brandsDataElem.value) : [];
+
+    console.log(categoriesDataElem)
 } catch (e) {
     showError('Error parsing dashboard data: ' + e.message);
     salesData = {

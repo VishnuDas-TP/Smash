@@ -8,6 +8,7 @@ const brandController = require("../controllers/admin/brandController")
 const orderController = require("../controllers/admin/orderController")
 const couponController = require("../controllers/admin/couponController")
 const saleReportController = require("../controllers/admin/salesReportcontroller")
+const stockController = require("../controllers/admin/stockController")
 
 const {userAuth,adminAuth} = require("../middlewares/auth")
 
@@ -47,6 +48,12 @@ router.post("/editProduct",adminAuth,uploads.array("images",4),productController
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
 router.post('/addProductOffer',adminAuth,productController.addProductOffer);
 router.post('/removeProductOffer',adminAuth,productController.removeProductOffer);
+
+// stock management
+router.get('/stock',stockController.getStocks)
+router.post('/update-stock',stockController.updateStock)
+
+
 // brand management
 router.get("/brands",adminAuth,brandController.getBrandPage);
 router.post("/addBrand",adminAuth,brandController.addBrand);
@@ -63,6 +70,7 @@ router.get("/getCoupon",couponController.getCoupon)
 router.post('/add-coupon',couponController.addCoupon)
 router.get('/delete-coupon/:id',couponController.deleteCoupon)
 
+// sales report management
 router.get('/saleReport',saleReportController.getSaleReport)
 router.get('/salesReportPDF',saleReportController.pdfGenerate)
 router.get('/salesReportExcel',saleReportController.excelGenerate)

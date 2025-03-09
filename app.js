@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const path = require("path");
+const morgan = require('morgan')
 const passport = require("./config/passport");
 const env = require("dotenv").config();
 const db = require("./config/db");
@@ -25,6 +26,7 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(morgan());
 
 app.use((req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');

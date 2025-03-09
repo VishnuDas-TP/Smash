@@ -3,6 +3,7 @@ const Product = require("../../models/productSchema")
 const User = require("../../models/userSchema");
 const Coupon = require("../../models/couponSchema")
 const Wallet = require("../../models/walletSchema")
+const Address = require("../../models/addressSchema")
 
 const getOrders= async (req,res)=>{
     try {
@@ -37,6 +38,32 @@ const getOrders= async (req,res)=>{
         console.error("Error loading orders page", error);
         res.status(404).redirect('/pageNotFound');
 
+        
+    }
+}
+const getOrderDetails= async (req,res)=>{
+    try {
+        const orderId=req.query.id;
+        
+        const userId=req.session.user;
+        if(!userId){
+            console.log('user not found');
+            return res.redirect('/login')
+        }
+        const user=await User.findById(userId);
+        const order= await Order.findById(orderId)
+        const address=await Address.findOne({'address._id':order.address},{'address.$':1})
+        const products=await Promise.all(
+            order.orderItems.map(async (item)=>{
+                return await Product.findOne({_id:item.product})
+            })
+        );
+        res.render('viewOrderDetails',{order,products,address:address.address[0],user})
+
+
+    } catch (error) {
+        console.error(error);
+        res.redirect('/pageNotFound')
         
     }
 }
@@ -203,6 +230,7 @@ const removeCoupon = async (req, res) => {
 
 module.exports = {
     getOrders,
+    getOrderDetails,
     getOrderCancel,
     applyCoupon,
     removeCoupon,

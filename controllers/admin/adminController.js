@@ -222,12 +222,12 @@ async function getTotalSales() {
 async function getMostSellingProducts() {
     try {
         const result = await Order.aggregate([
-            { $unwind: "$orderedItems" },
+            { $unwind: "$orderItems" },
 
             {
                 $lookup: {
                     from: "products",
-                    localField: "orderedItems.product",
+                    localField: "orderItems.product",
                     foreignField: "_id",
                     as: "productDetails"
                 }
@@ -237,9 +237,9 @@ async function getMostSellingProducts() {
 
             {
                 $group: {
-                    _id: "$orderedItems.product",
+                    _id: "$orderItems.product",
                     productName: { $first: "$productDetails.productName" },
-                    totalQuantitySold: { $sum: "$orderedItems.quantity" }
+                    totalQuantitySold: { $sum: "$orderItems.quantity" }
                 }
             },
 
@@ -261,12 +261,12 @@ async function getMostSellingProducts() {
 async function getMostSellingCategories() {
     try {
         const result = await Order.aggregate([
-            { $unwind: "$orderedItems" },
+            { $unwind: "$orderItems" },
 
             {
                 $lookup: {
                     from: "products",
-                    localField: "orderedItems.product",
+                    localField: "orderItems.product",
                     foreignField: "_id",
                     as: "productDetails"
                 }
@@ -289,7 +289,7 @@ async function getMostSellingCategories() {
                 $group: {
                     _id: "$productDetails.category",
                     categoryName: { $first: "$categoryDetails.name" },
-                    totalQuantitySold: { $sum: "$orderedItems.quantity" }
+                    totalQuantitySold: { $sum: "$orderItems.quantity" }
                 }
             },
 
@@ -311,12 +311,12 @@ async function getMostSellingCategories() {
 async function getMostSellingBrands() {
     try {
         const result = await Order.aggregate([
-            { $unwind: "$orderedItems" },
+            { $unwind: "$orderItems" },
 
             {
                 $lookup: {
                     from: "products",
-                    localField: "orderedItems.product",
+                    localField: "orderItems.product",
                     foreignField: "_id",
                     as: "productDetails"
                 }
@@ -327,7 +327,7 @@ async function getMostSellingBrands() {
             {
                 $group: {
                     _id: "$productDetails.brand",
-                    totalQuantitySold: { $sum: "$orderedItems.quantity" }
+                    totalQuantitySold: { $sum: "$orderItems.quantity" }
                 }
             },
 
