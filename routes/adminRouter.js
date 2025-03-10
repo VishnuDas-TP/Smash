@@ -13,7 +13,8 @@ const stockController = require("../controllers/admin/stockController")
 const {userAuth,adminAuth} = require("../middlewares/auth")
 
 const multer=require('multer');
-const storage=require('../helpers/multer')
+const storage=require('../helpers/multer');
+const Return = require("../models/returnSchema");
 const uploads=multer({storage:storage})
 
 
@@ -64,6 +65,10 @@ router.get("/deleteBrand",adminAuth,brandController.deleteBrand)
 // Order menagement
 router.get('/allOrders',orderController.getAllorders);
 router.post('/update-order-status',orderController.updateOrderStatus);
+
+// Return management
+router.get('/getReturnRequest',adminAuth,orderController.getReturnPage)
+router.post('/returnDataUpdate',adminAuth,orderController.returnRequest);
 
 // coupon manegement 
 router.get("/getCoupon",couponController.getCoupon)

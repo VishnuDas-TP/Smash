@@ -47,17 +47,14 @@ const getCheckOut = async (req, res) => {
             }
         }
 
-        let gstAmount = (totalPrice * 18)/100
-        let totalWithGst = totalPrice + gstAmount
+       
 
         res.render("checkout", {
             address: address.address ? address.address || [] : [] ,
             product,
             cart,
             totalPrice,
-            gstAmount,
             discount,
-            totalWithGst,
             singleProductQty,
             singleProductId
         })

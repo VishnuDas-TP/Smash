@@ -88,7 +88,9 @@ router.post("/place-order",userAuth,checkoutcontoller.placeOrder)
 // order management
 router.get("/orders",userAuth,ordercontoller.getOrders)   
 router.get('/cancel-order',userAuth,ordercontoller.getOrderCancel)
+router.post('/return-request',userAuth,ordercontoller.returnRequest)
 router.get('/order-details',userAuth,ordercontoller.getOrderDetails)
+router.get('/download-invoice',userAuth,ordercontoller.downloadInvoice)
 
 
 

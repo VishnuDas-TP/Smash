@@ -85,19 +85,19 @@
                     <div class="card-body d-flex justify-content-between align-items-center">
                         <div>
                             <h5>Shipment Status: <span class="badge text-dark ms-2 
-                                <% if (order.status === 'Pending') { %> bg-secondary 
-                                <% } else if (order.status === 'Processing') { %> bg-info 
-                                <% } else if (order.status === 'Shipped') { %> bg-primary 
-                                <% } else if (order.status === 'Delivered') { %> bg-success 
-                                <% } else if (order.status === 'Cancelled') { %> bg-danger 
-                                <% } else if (order.status === 'Return Request') { %> bg-warning 
-                                <% } else if (order.status === 'Returned') { %> bg-primary
+                                <% if (order.orderStatus === 'Pending') { %> bg-secondary 
+                                <% } else if (order.orderStatus === 'Processing') { %> bg-info 
+                                <% } else if (order.orderStatus === 'Shipped') { %> bg-primary 
+                                <% } else if (order.orderStatus === 'Delivered') { %> bg-success 
+                                <% } else if (order.orderStatus === 'Cancelled') { %> bg-danger 
+                                <% } else if (order.orderStatus === 'Return Request') { %> bg-warning 
+                                <% } else if (order.orderStatus === 'Returned') { %> bg-primary
                                 <% } %>">
-                                    <%= order.status %>
+                                    <%= order.orderStatus %>
                                 </span>
                             </h5>
                         </div>
-                        <%if(order.status == "Delivered"){%>
+                        <%if(order.orderStatus == "Delivered"){%>
                             <a href="/download-invoice?id=<%= order._id %>" class="btn btn-primary">Download Invoice</a>
                         <%}%>
                     </div>
