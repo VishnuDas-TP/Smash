@@ -376,9 +376,16 @@
                                     </div>
 
                                 </div><br>
+                                <% if (product) { %>
                                 <div>
                                     <a href="/coupons?productId=<%= product._id %>&quantity=<%= singleProductQty %>" class="btn btn-success">Show Available coupons</a>
                                 </div>
+                                <% }else{ %>
+
+                                <div>
+                                    <a href="/coupons" class="btn btn-success">Show Available coupons</a>
+                                </div>
+                                <% } %>
                             </div>
 
                             <!-- Price Summary -->
@@ -892,7 +899,7 @@
             if (applyCouponBtn) applyCouponBtn.classList.remove('d-none');
 
             updateDisplays({
-                subtotal: subtotalValue, // Keep the original subtotal without GST
+                subtotal: subtotalValue, 
                 discount: 0,
                 final: originalPrice
             });

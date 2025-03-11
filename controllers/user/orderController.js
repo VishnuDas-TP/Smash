@@ -88,6 +88,7 @@ const getOrderCancel = async (req, res) => {
             console.log('Order not found');
             return res.redirect('/orders');
         }
+        
 
         // If payment method is COD, mark the payment status as 'Failed'
         if (order.paymentMethod === 'COD') {

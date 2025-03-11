@@ -4,6 +4,8 @@ const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
 const Razorpay = require("razorpay")
 const crypto = require('crypto');
+const Wallet = require("../../models/walletSchema");
+const { error } = require("console");
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -19,11 +21,11 @@ const getCheckOut = async (req, res) => {
 
         const userId = req.session.user
         const address = await Address.findOne({ userId: userId }) || [];
-        console.log(address.length,"sadfghj");
+        // console.log(address.length,"sadfghj");
         
 
-        const singleProductId = req.query.productId;
-        const singleProductQty = req.query.quantity;
+        const singleProductId = req.query.productId || null;
+        const singleProductQty = req.query.quantity || null;
 
 
         let cart = null;
@@ -429,6 +431,99 @@ const retryPayment = async (req, res) => {
     }
 }
 
+const walletPayment = async (req, res) => {
+    try {
+        const { cart, totalPrice, addressId, singleProduct, finalPrice, coupon, discount } = req.body;
+        const userId = req.session.user;
+        console.log(userId);
+        
+
+        if (!userId || !finalPrice || (!cart && !singleProduct)) {
+            return res.status(400).json({ success: false, message: 'Missing required fields.' });
+            
+        }
+
+        const wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+            return res.status(400).json({ success: false, message: 'Wallet not found.' });
+        }
+
+        const amount = parseFloat(finalPrice);
+        if (isNaN(amount) || amount <= 0) {
+            return res.status(400).json({ success: false, message: 'Invalid final price.' });
+        }
+
+        if (wallet.balance < amount) {
+            return res.status(400).json({ success: false, message: 'Insufficient wallet balance.' });
+        }
+
+        let orderedItems = [];
+        if (singleProduct) {
+            const product = JSON.parse(singleProduct);
+            orderedItems.push({
+                product: product._id,
+                quantity: 1,
+                price: product.salePrice,
+            });
+            await Product.findByIdAndUpdate(product._id, {
+                $inc: { quantity: -1 },
+            });
+        } else if (cart) {
+            const cartItems = JSON.parse(cart);
+            orderedItems = cartItems.map(item => ({
+                product: item.productId,
+                quantity: item.quantity,
+                price: item.totalPrice / item.quantity,
+            }));
+            cartItems.forEach(async item => {
+                await Product.findByIdAndUpdate(item.productId, {
+                    $inc: { quantity: -item.quantity },
+                });
+            });
+        }
+
+        const newOrder = new Order({
+            orderedItems,
+            totalPrice,
+            discount: discount,
+            finalAmount: finalPrice,
+            userId: userId,
+            address: addressId._id,
+            status: 'pending',
+            paymentMethod: 'Wallet',
+            paymentStatus: 'Completed',
+            orderStatus: "Pending",
+            couponCode: coupon,
+            couponApplied: Boolean(coupon && discount),
+        });
+
+        await newOrder.save();
+
+        const walletData = {
+            $inc: { balance: -newOrder.finalAmount },
+            $push: { 
+              transactions: {
+                type: "Purchase",
+                amount: newOrder.totalPrice,
+                orderId: newOrder._id
+              }
+            }
+          }
+      
+          await Wallet.findOneAndUpdate(
+            {userId:userId},
+            walletData,
+            { upsert: true, new: true }
+          );
+
+
+        res.status(200).json({ success: true, orderId: newOrder._id });
+    } catch (error) {
+        console.error("Error processing wallet payment:", error);
+        res.status(500).json({ success: false, message: 'Failed to process wallet payment. Please try again.' });
+    }
+};
+
 const placeOrder= async (req, res) => {
     try {
         const { orderId, paymentDetails, paymentSuccess } = req.body;
@@ -483,6 +578,7 @@ module.exports = {
     createOrder,
     verifyPayment,
     retryPayment,
+    walletPayment,
     placeOrder,
     paymentFailed
     

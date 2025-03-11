@@ -171,7 +171,6 @@ const getEditCategory = async (req,res) => {
 
 const editCategory = async (req,res) => {
     try {
-
         const id = req.params.id;
         const {categoryName,description} = req.body;
         const existingCategory = await Category.findOne({name:{$regex:categoryName,$options:"i"},_id:{$ne:id}})

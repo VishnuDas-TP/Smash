@@ -83,7 +83,8 @@ router.get("/order-confirmation",userAuth,checkoutcontoller.orderConfirm)
 router.get("/payment-failed",userAuth,checkoutcontoller.paymentFailed)   
 router.post('/retry-payment',userAuth,checkoutcontoller.retryPayment);
 router.post("/verify-payment",userAuth,checkoutcontoller.verifyPayment)   
-router.post("/place-order",userAuth,checkoutcontoller.placeOrder)   
+router.post("/place-order",userAuth,checkoutcontoller.placeOrder) 
+router.post('/wallet-payment',checkoutcontoller.walletPayment);  
 
 // order management
 router.get("/orders",userAuth,ordercontoller.getOrders)   
@@ -102,6 +103,7 @@ router.post('/remove-coupon',userAuth,ordercontoller.removeCoupon);
 // Wallet Mangement
 router.get('/wallet',userAuth, walletController.loadWallet);
 router.post('/create-wallet',userAuth,walletController.createWallet)
+
 
 
 module.exports=router
