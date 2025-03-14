@@ -72,11 +72,14 @@ const addCategoryOffer = async (req,res) => {
         const categoryId = req.body.categoryId;
         
         const category = await Category.findById(categoryId);
-        console.log(category,categoryId,percentage);
+        // console.log(category,categoryId,percentage);
         
 
         if(!category){
             return res.status(400).json({status:false,message:"Category not found"});
+        }
+        if(percentage > 99 || percentage < 1){
+            return res.json({status:false,message:"Please enter a value between 1 - 99"})
         }
         const products = await Product.find({category:category._id});
         const hasProductOffer = products.some((product)=>product.productOffer > percentage);

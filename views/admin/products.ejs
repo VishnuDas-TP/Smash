@@ -112,6 +112,7 @@
             inputPlaceholder:'%',
 
         })
+        
         $.ajax({
             url:'/admin/addProductOffer',
             method:'post',
@@ -122,7 +123,7 @@
             success:(response)=>{
                 if(response.status===true){
                     
-                    Swal.fire('Offer added ','the offer has been removed','success')
+                    Swal.fire('Offer added ','the offer has been Added','success')
                         .then(()=>location.reload())
                 }else{
                     Swal.fire('Failed', response.message || 'Failed to add offer', 'error');

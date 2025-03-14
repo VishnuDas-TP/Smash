@@ -54,7 +54,7 @@ const addProducts = async (req,res) => {
             }
 
             const category = await Category.findOne({name:products.category});
-            console.log(category)
+            // console.log(category)
 
             if(!category){
                 return res.status(400).console.log("Invaild category name");
@@ -150,6 +150,10 @@ const getAllProducts = async (req, res) => {
 const addProductOffer = async (req, res) => {
     try {
         const { productId, percentage } = req.body;
+
+        if(percentage >99 || percentage < 1){
+            return res.json({ status: false, message: "Please enter a value between 1 - 99" });
+        }
        
 
         // Find the product and its category
@@ -164,7 +168,7 @@ const addProductOffer = async (req, res) => {
 
         // Calculate the discount and update sale price (subtract from the original price)
         const discount = Math.floor(findProduct.regularPrice * (percentage / 100));
-        findProduct.salePrice = findProduct.salePrice - discount;
+        findProduct.salePrice = Math.floor(findProduct.salePrice - discount);
        
 
         // Store the product offer percentage
@@ -194,9 +198,9 @@ const removeProductOffer = async (req, res) => {
         // Get the discount percentage and calculate the restored price
         const percentage = findProduct.productOffer;
         
-
         // Restore the original sale price
-        findProduct.salePrice = ((findProduct.salePrice *100)/(100-percentage))
+        const discount = Math.floor(findProduct.regularPrice * (percentage / 100));
+        findProduct.salePrice = Math.floor(findProduct.salePrice + discount);
 
         // Remove the product offer
         findProduct.productOffer = 0;

@@ -40,7 +40,24 @@
         .order-summary-details {
             width: 30%;
         }
+
+        .coupon-text {
+            color: #28a745;
+            /* Green color */
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .coupon-text i {
+            color: #28a745;
+            /* Green icon */
+            font-size: 16px;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <main class="main">
@@ -66,7 +83,7 @@
                 <% } %>">
                                     <%= order.paymentStatus %>
                                 </span>&nbsp;&nbsp;&nbsp;
-                                <% if (order.paymentStatus==='Pending') { %>
+                                <% if (order.paymentStatus==='Pending' ) { %>
                                     <button id="continuePaymentButton" class="btn btn-primary"
                                         onclick="retryPayment('<%=order._id%>')">Continue Payment</button>
                                     <% } %>
@@ -97,9 +114,9 @@
                                 </span>
                             </h5>
                         </div>
-                        <%if(order.orderStatus == "Delivered"){%>
+                        <%if(order.orderStatus=="Delivered" ){%>
                             <a href="/download-invoice?id=<%= order._id %>" class="btn btn-primary">Download Invoice</a>
-                        <%}%>
+                            <%}%>
                     </div>
                 </div>
 
@@ -155,9 +172,15 @@
                             </p>
                             <p>Discount: ₹<%= order.discount.toLocaleString() %>
                             </p>
-                            <hr>
-                            <h5>Total: ₹<%= order.finalAmount.toLocaleString() %>
-                            </h5>
+                            <% if(order.couponApplied==true){ %>
+                                <p class="coupon-text">
+                                    <i class="fas fa-check-circle"></i> Coupon Applied
+                                </p>
+                                <% } %>
+
+                                    <hr>
+                                    <h5>Total: ₹<%= order.finalAmount.toLocaleString() %>
+                                    </h5>
                         </div>
                     </div>
                 </div>

@@ -17,10 +17,10 @@ const getOrders= async (req,res)=>{
             console.log('user not found');
             return res.redirect('/login')
         }
-        const page =parseInt(req.query.page)||1
+        const page = parseInt(req.query.page) || 1
         const limit =parseInt(req.query.limit)||10
         const skip=(page-1)*limit
-        const totalOrders=await Order.countDocuments({user:userId})
+        const totalOrders=await Order.countDocuments({userId:userId})
 
 
         const orders=await Order.find({userId : userId}).sort({createdOn:-1}).skip(skip).limit(limit);
