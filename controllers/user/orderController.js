@@ -164,6 +164,11 @@ const returnRequest=async (req,res)=>{
         await newReturn.save();
         console.log("return working");
         
+        await Order.findByIdAndUpdate(orderId, { orderStatus: "Return Requested" }, { new: true });
+
+        console.log("order status changed");
+        
+        
         return res.status(200).json({message:'return request is successfully applied'})
 
 

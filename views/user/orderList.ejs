@@ -60,7 +60,7 @@
                                             <td>
                                                 <a href="/order-details?id=<%= order._id %>" class="btn btn-sm btn-success me-2">View Details</a>
                                                 <% let days = (Date.now() - new Date(order.createdOn)) / (1000 * 60 * 60 * 24); %>
-                                                <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Return Request' &&order.orderStatus !== 'Returned') { %>
+                                                <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Return Requested' &&order.orderStatus !== 'Returned') { %>
 
                                                     <button class="btn btn-sm btn-danger"
                                                         onclick="confirmCancelOrder('<%= order._id %>')">Cancel</button>

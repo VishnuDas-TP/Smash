@@ -1,16 +1,27 @@
 
 const Coupon =require("../../models/couponSchema")
 
-const getCoupon= async (req,res)=>{
+const getCoupon = async (req, res) => {
     try {
-        const coupons=await Coupon.find().sort({createdOn:-1});
-        res.render('addCoupon',{coupons})
+        const page = parseInt(req.query.page) || 1; // Get the current page, default to 1
+        const limit = 5; // Number of coupons per page
+        const skip = (page - 1) * limit;
+        
+
+        const totalCoupons = await Coupon.countDocuments(); // Get total number of coupons
+        const coupons = await Coupon.find().sort({ createdOn: -1 }).skip(skip).limit(limit);
+
+        res.render('addCoupon', {
+            coupons,
+            currentPage: page,
+            totalPages: Math.ceil(totalCoupons / limit)
+        });
     } catch (error) {
         console.error(error);
-        res.redirect('/pageNotFound')
-
+        res.redirect('/pageNotFound');
     }
-}
+};
+
 const addCoupon=async (req,res)=>{
     try {
         const  { name, expireOn, offerPercentage, minimumPrice,maxDiscount  }=req.body;

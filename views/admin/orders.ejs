@@ -39,106 +39,92 @@
     </style>
 
 
-    <section class="content-main">
-        <div class="content-header">
-            <div>
-                <h2 class="content-title card-title">Order List </h2>
-            </div>
-            <div>
-                <input type="text" placeholder="Search order ID" class="form-control bg-white">
-            </div>
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Order List</h2>
         </div>
-        <div class="card mb-4">
-            <header class="card-header">
-                <div class="row gx-3">
-
-
-
-                </div>
-            </header> <!-- card-header end// -->
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+        <div>
+            <input type="text" placeholder="Search order ID" class="form-control bg-white">
+        </div>
+    </div>
+    <div class="card mb-4">
+        <header class="card-header">
+            <div class="row gx-3">
+            </div>
+        </header> <!-- card-header end// -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Product</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Payment Method</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th> <!-- New Column for Order Details Button -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for(let i = 0; i < orders.length; i++) { %>
                             <tr>
-                                <th>#ID</th>
-                                <th scope="col">Date</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Product</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Total</th>
-                                <th scope="col">Payment Method</th>
-                                <th scope="col">Status</th>
+                                <td onclick="orderPage('<%= orders[i]._id %>')">
+                                    <%= orders[i].orderId %>
+                                </td>
+                                <td>
+                                    <%= orders[i].createdOn.toLocaleDateString() %>
+                                </td>
+                                <td>
+                                    <b><%= orders[i].userId ? orders[i].userId.name : 'User not found' %></b>
+                                </td>
+                                <td>
+                                    <ul style="padding-left: 15px; margin: 0;">
+                                        <% orders[i].orderItems.forEach(item => { %>
+                                            <li><%= item.product.productName %></li>
+                                        <% }) %>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <% orders[i].orderItems.forEach(item => { %>
+                                            <li><%= item.quantity %></li>
+                                        <% }) %>
+                                    </ul>
+                                </td>
+                                <td>₹<%= orders[i].finalAmount.toLocaleString() %></td>
+                                <td><%= orders[i].paymentMethod %></td>
+                                <td>
+                                    <select data-order-id="<%= orders[i].orderId %>"
+                                        onchange="updateOrderStatus('<%= orders[i]._id %>', this.value)"
+                                        class="badge rounded-pill status-<%= orders[i].orderStatus.toLowerCase() %>"
+                                        <%= orders[i].orderStatus === 'Delivered' || orders[i].orderStatus === 'Cancelled' ? 'disabled' : '' %>
+                                    >
+                                        <option value="Pending" <%= orders[i].orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                        <option value="Processing" <%= orders[i].orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                        <option value="Shipped" <%= orders[i].orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                        <option value="Delivered" <%= orders[i].orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                        <option value="Cancelled" <%= orders[i].orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                        <option value="Return Request" <%= orders[i].orderStatus === 'Return Request' ? 'selected' : '' %>>Return Request</option>
+                                        <option value="Returned" <%= orders[i].orderStatus === 'Returned' ? 'selected' : '' %>>Returned</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <a href="/admin/order-details/<%= orders[i]._id %>" class="btn btn-primary btn-sm" style="padding: 2px 6px; font-size: 12px;">View Details</a>
+                                </td>
+                                
                             </tr>
-                        </thead>
-                        <tbody>
-                            <%for(let i=0;i<orders.length;i++){%>
-                                <tr>
-                                    <td onclick="orderPage('<%=orders[i]._id%>')">
-                                        <%=orders[i].orderId%>
-                                    </td>
-                                    <td>
-                                        <%=orders[i].createdOn.toLocaleDateString()%>
-                                    </td>
-                                    <td><b>
-                                            <%= orders[i].userId ? orders[i].userId.name : 'User not found' %>
-                                        </b></td>
-                                    <td>
-                                        <ul style="padding-left: 15px; margin: 0;">
-                                            <% orders[i].orderItems.forEach(item=> { %>
-                                                <li>
-                                                    <%= item.product.productName %>
-                                                </li>
-                                                <% }) %>
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        <ul>
-                                            <%orders[i].orderItems.forEach(item=> {%>
-                                                <li>
-                                                    <%= item.quantity %>
-                                                </li>
-                                                <%})%>
-                                        </ul>
-                                    </td>
-                                    <td>₹<%=orders[i].finalAmount.toLocaleString()%>
-                                    </td>
-                                    <td>
-                                        <%=orders[i].paymentMethod%>
-                                    </td>
-                                    <td>
-                                        <select data-order-id="<%= orders[i].orderId %>"
-                                            onchange="updateOrderStatus('<%= orders[i]._id %>', this.value)"
-                                            class="badge rounded-pill status-<%= orders[i].orderStatus.toLowerCase() %>"
-                                            <%=orders[i].orderStatus==='Delivered' ||
-                                            orders[i].orderStatus==='Cancelled' ? 'disabled' : '' %>
-                                            >
-                                            <option value="Pending" <%=orders[i].orderStatus==='Pending' ? 'selected'
-                                                : '' %>
-                                                >Pending</option>
-                                            <option value="Processing" <%=orders[i].orderStatus==='Processing'
-                                                ? 'selected' : '' %>>Processing</option>
-                                            <option value="Shipped" <%=orders[i].orderStatus==='Shipped' ? 'selected'
-                                                : '' %>
-                                                >Shipped</option>
-                                            <option value="Delivered" <%=orders[i].orderStatus==='Delivered'
-                                                ? 'selected' : '' %>>Delivered</option>
-                                            <option value="Cancelled" <%=orders[i].orderStatus==='Cancelled'
-                                                ? 'selected' : '' %>>Cancelled</option>
-                                            <option value="Return Request" <%=orders[i].orderStatus==='Return Request'
-                                                ? 'selected' : '' %>>Return Request</option>
-                                            <option value="Returned" <%=orders[i].orderStatus==='Returned' ? 'selected'
-                                                : '' %>>Returned</option>
-                                        </select>
-                                    </td>
-
-                                </tr>
-                                <%}%>
-                        </tbody>
-                    </table>
-                </div>
+                        <% } %>
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
+</section>
+
         <div class="pagination-area mt-15 mb-50 container">
             <nav aria-label="Page navigation example">
                 <ul class="pagination justify-content-start">

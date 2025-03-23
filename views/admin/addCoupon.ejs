@@ -169,6 +169,24 @@
       <% } %>
     </tbody>
   </table>
+
+ <!-- Pagination Controls -->
+ <div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="?page=<%= currentPage - 1 %>">Previous</a>
+  <% } else { %>
+    <span class="disabled">Previous</span>
+  <% } %>
+
+  Page <%= currentPage %> of <%= totalPages %>
+
+  <% if (currentPage < totalPages) { %>
+    <a href="?page=<%= currentPage + 1 %>">Next</a>
+  <% } else { %>
+    <span class="disabled">Next</span>
+  <% } %>
+</div>
+
 </div>
 <br>
 <br>
@@ -203,21 +221,20 @@
         return;
       }
 
-    //   if (minPrice >= maxPrice) {
-    //     Swal.fire({
-    //       icon: 'error',
-    //       title: 'Validation Error',
-    //       text: 'Minimum price must be less than maximum price.',
-    //     });
-    //     return;
-    //   }
+      // if (minPrice >= maxPrice) {
+      //   Swal.fire({
+      //     icon: 'error',
+      //     title: 'Validation Error',
+      //     text: 'Minimum price must be less than maximum price.',
+      //   });
+      //   return;
+      // }
       if (per>100 || per<0) {
-        Swal.fire({
+        return Swal.fire({
           icon: 'error',
           title: 'Validation Error',
           text: 'percentage must be between 0-100.',
         });
-        return;
       }
       
       try {

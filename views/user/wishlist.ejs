@@ -39,7 +39,7 @@
                                             </td>
                                             <td class="text-right" data-title="Cart">
                                                 <% if (item.stockStatus) { %>
-                                                    <form action="/addToCart?id=<%= item.id %>" method="POST"
+                                                    <form action="/addToCart?id=<%= item.productId %>" method="POST"
                                                         style="display: inline; ">
                                                         <input type="hidden" name="quantity" id="cart-quantity" value="1">
                                                         <button type="submit" class="btn btn-sm"><i class="fi-rs-shopping-bag mr-5"></i>Add to cart</button>

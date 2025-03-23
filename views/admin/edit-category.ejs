@@ -5,23 +5,87 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6 mt-60">
-            <form method="post" action="/admin/editCategory/<%= category._id %>">
+            <form id="editCategoryForm" method="post" action="/admin/editCategory/<%= category._id %>">
                 <div class="d-grid text-end mt-30 col-md-5">
-                    <button class="btn btn-primary" type="submit">Update category</button>
+                    <button id="updateCategoryBtn" class="btn btn-primary" type="submit">Update category</button>
                 </div>
                 <div class="mb-4 mt-30">
-                    <label for="product_name" class="form-label">Name</label>
-                    <input type="text" name="categoryName" value="<%= category.name %>" class="form-control border" />
+                    <label for="categoryName" class="form-label">Name</label>
+                    <input type="text" id="categoryName" name="categoryName" value="<%= category.name %>" class="form-control border" required />
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control border"><%= category.description %></textarea>
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description" name="description" class="form-control border" required><%= category.description %></textarea>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("editCategoryForm");
+        const categoryNameInput = document.getElementById("categoryName");
+
+        form.addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            let trimmedCategoryName = categoryNameInput.value.trim();
+            categoryNameInput.value = trimmedCategoryName; // Trim input value
+
+            if (!trimmedCategoryName) {
+                Swal.fire("Error!", "Category name cannot be empty!", "error");
+                return;
+            }
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to update this category?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, update it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(form.action, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            categoryName: trimmedCategoryName,
+                            description: document.getElementById("description").value.trim()
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => Promise.reject(err)); // Handle errors properly
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Swal.fire(
+                            "Updated!",
+                            data.message || "Category has been updated successfully.",
+                            "success"
+                        ).then(() => {
+                            window.location.href = "/admin/category";
+                        });
+                    })
+                    .catch(error => {
+                        Swal.fire(
+                            "Error!",
+                            error.error || "Something went wrong. Please try again.",
+                            "error"
+                        );
+                    });
+                }
+            });
+        });
+    });
+</script>
 
 
 

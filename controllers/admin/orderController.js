@@ -3,6 +3,7 @@ const Order =require('../../models/orderSchema');
 const Products =require('../../models/productSchema');
 const Return = require("../../models/returnSchema")
 const Wallet = require("../../models/walletSchema")
+const Address = require("../../models/addressSchema")
 
 const getAllorders=async (req,res)=>{
     try {
@@ -18,6 +19,34 @@ const getAllorders=async (req,res)=>{
     }
     
 }
+
+const getOrderDetails = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+
+        // Fetch the order details by ID and populate necessary fields
+        const order = await Order.findById(orderId)
+            .populate("userId")
+            .populate("orderItems.product");
+
+        if (!order) {
+            return res.status(404).send("Order not found");
+        }
+
+        // Fetch the address details
+        const address = order.address
+
+        // Extract products from order
+        const products = order.orderItems.map(item => item.product);
+
+        // Render the order details page with fetched data
+        res.render("order-details", { order, address, products });
+
+    } catch (error) {
+        console.error("Error fetching order details:", error);
+        res.status(500).send("Internal Server Error");
+    }
+};
 
 const updateOrderStatus = async (req, res) => {
     const { newStatus } = req.body;
@@ -84,12 +113,12 @@ const returnRequest= async (req,res)=>{
             
             returnData.returnStatus ='approved';
             await returnData.save();
-            await Order.findByIdAndUpdate(orderId,{$set:{status:'Returned'}})
+            await Order.findByIdAndUpdate(orderId,{$set:{orderStatus:'Returned'}})
 
         }else if(status=='rejected'){
             returnData.returnStatus =status;
             await returnData.save();
-            await Order.findByIdAndUpdate(orderId,{$set:{status:'Return Requeest'}})
+            await Order.findByIdAndUpdate(orderId,{$set:{orderStatus:'Return Requeest'}})
 
         }else{
             return res.status(400).json({message:'something wend wrong'})
@@ -105,9 +134,12 @@ const returnRequest= async (req,res)=>{
 
 
 
+
 module.exports = {
     getAllorders,
+    getOrderDetails,
     updateOrderStatus,
     getReturnPage,
     returnRequest,
+    
 }

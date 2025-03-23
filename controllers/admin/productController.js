@@ -61,6 +61,9 @@ const addProducts = async (req,res) => {
 
             }
 
+            console.log(products.regularPrice,"hkjklhjlkjhkljhkljhljh");
+            
+
 
             const newproduct = new Product({
                 productName:products.productName,

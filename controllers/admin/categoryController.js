@@ -172,31 +172,36 @@ const getEditCategory = async (req,res) => {
     }
 }
 
-const editCategory = async (req,res) => {
+const editCategory = async (req, res) => {
     try {
         const id = req.params.id;
-        const {categoryName,description} = req.body;
-        const existingCategory = await Category.findOne({name:{$regex:categoryName,$options:"i"},_id:{$ne:id}})
-        
-        if(existingCategory){
-            return res.status(400).json({error:"Category exist, please choose another name"});
+        const { categoryName, description } = req.body;
+
+        const existingCategory = await Category.findOne({
+            name: { $regex: categoryName, $options: "i" },
+            _id: { $ne: id },
+        });
+
+        if (existingCategory) {
+            return res.status(400).json({ error: "Category exists, please choose another name" });
         }
 
-        const updateCategory = await Category.findByIdAndUpdate(id,{
-            name:categoryName,
-            description:description,
-        },{new:true});
+        const updateCategory = await Category.findByIdAndUpdate(
+            id,
+            { name: categoryName, description: description },
+            { new: true }
+        );
 
-        if(updateCategory){
-            res.redirect("/admin/category")
-        }else{
-            res.status(404).json({error:"category not found"})
+        if (updateCategory) {
+            return res.status(200).json({ success: true, message: "Category updated successfully" });
+        } else {
+            return res.status(404).json({ error: "Category not found" });
         }
-
     } catch (error) {
-        res.status(500).json({error:"Internal server Error"})
+        return res.status(500).json({ error: "Internal server error" });
     }
-}
+};
+
 
 
 

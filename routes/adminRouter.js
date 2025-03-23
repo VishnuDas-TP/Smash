@@ -51,8 +51,8 @@ router.post('/addProductOffer',adminAuth,productController.addProductOffer);
 router.post('/removeProductOffer',adminAuth,productController.removeProductOffer);
 
 // stock management
-router.get('/stock',stockController.getStocks)
-router.post('/update-stock',stockController.updateStock)
+router.get('/stock',adminAuth,stockController.getStocks)
+router.post('/update-stock',adminAuth,stockController.updateStock)
 
 
 // brand management
@@ -63,23 +63,25 @@ router.get("/unblockBrand",adminAuth,brandController.unblockBrand)
 router.get("/deleteBrand",adminAuth,brandController.deleteBrand)
 
 // Order menagement
-router.get('/allOrders',orderController.getAllorders);
-router.post('/update-order-status',orderController.updateOrderStatus);
+router.get('/allOrders',adminAuth,orderController.getAllorders);
+router.get("/order-details/:id", adminAuth,orderController.getOrderDetails);
+router.post('/update-order-status',adminAuth,orderController.updateOrderStatus);
+
 
 // Return management
 router.get('/getReturnRequest',adminAuth,orderController.getReturnPage)
 router.post('/returnDataUpdate',adminAuth,orderController.returnRequest);
 
 // coupon manegement 
-router.get("/getCoupon",couponController.getCoupon)
-router.post('/add-coupon',couponController.addCoupon)
-router.get('/delete-coupon/:id',couponController.deleteCoupon)
+router.get("/getCoupon",adminAuth,couponController.getCoupon)
+router.post('/add-coupon',adminAuth,couponController.addCoupon)
+router.get('/delete-coupon/:id',adminAuth,couponController.deleteCoupon)
 
 // sales report management
-router.get('/saleReport',saleReportController.getSaleReport)
-router.get('/salesReportPDF',saleReportController.pdfGenerate)
-router.get('/salesReportExcel',saleReportController.excelGenerate)
-router.get('/filterSales',saleReportController.getSaleReportFilter)
+router.get('/saleReport',adminAuth,saleReportController.getSaleReport)
+router.get('/salesReportPDF',adminAuth,saleReportController.pdfGenerate)
+router.get('/salesReportExcel',adminAuth,saleReportController.excelGenerate)
+router.get('/filterSales',adminAuth,saleReportController.getSaleReportFilter)
 
 
 
