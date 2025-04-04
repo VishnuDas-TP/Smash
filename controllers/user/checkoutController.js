@@ -209,7 +209,7 @@ const placeOrderInitial = async (req, res) => {
             success: true,
             message: 'Order placed successfully',
             orderId: order._id,
-            key:process.env.RAZORPAY_KEY_ID
+            razorpayKey:process.env.RAZORPAY_KEY_ID
         });
 
     } catch (error) {
@@ -481,6 +481,8 @@ const walletPayment = async (req, res) => {
                 });
             });
         }
+        console.log(orderedItems);
+        
 
         const newOrder = new Order({
             orderedItems,

@@ -30,7 +30,8 @@ const userAuth = (req,res,next)=>{
 }
 
 const adminAuth = (req,res,next)=>{
-    User.findOne({isAdmin:true})
+        
+    User.findById(req.session.admin)
     .then(data=>{
         if(data){
             next();

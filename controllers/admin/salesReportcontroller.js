@@ -18,12 +18,13 @@ const getSaleReport=async (req,res)=>{
             if(endDate)filter.createsOn.$lte=new Date(endDate)
         }
 
-        const orders=await Order.find(filter).populate('userId').populate('orderItems.product').sort({createdOn:-1}).skip((page-1)*limit).limit(parseInt(limit))
+        const orders=await Order.find({...filter ,  orderStatus: { $nin: ["returned", "Cancelled"]}
+        }).populate('userId').populate('orderItems.product').sort({createdOn:-1}).skip((page-1)*limit).limit(parseInt(limit))
        
         const totalSales= await Order.aggregate([{$match:filter},{$group:{_id:null,total:{$sum:'$finalAmount'}}}]);
         const totalDiscount=await Order.aggregate([{$match:filter},{$group:{_id:null,total:{$sum:'$discount'}}}]);
         const uniqueCustomers=await Order.distinct('userId',filter);
-        const totalOrders=await Order.countDocuments(filter);
+        const totalOrders=await Order.countDocuments({...filter ,  orderStatus: { $nin: ["returned", "Cancelled"] }});
        
         if(startDate||endDate){
             console.log('sdisahlihAOIFUa');

@@ -98,6 +98,14 @@
                 <div class="error-message" id="passwordError"></div>
             </div>
 
+            <div>
+                <% if(message && message.length>0){ %>
+                    <div class="alert alert-danger text-center">
+                        <%= message %>
+                    </div>
+                    <% } %>
+            </div>
+
             <button type="submit" class="btn btn-primary w-100">Sign In</button>
 
             <div class="forgot-password">

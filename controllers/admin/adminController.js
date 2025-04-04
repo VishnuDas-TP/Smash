@@ -13,10 +13,12 @@ const pageerror = async (req,res) => {
 
 const loadLogin =async (req,res) => {
     try {
-        if(req.session.admin){
-            return res.redirect("/admin/dashboard");
+        if(!req.session.admin){
+            res.render("admin-login",{message:null});
         }
-        res.render("admin-login",{message:null});
+        else{
+            res.redirect("/admin");
+        }
         
     } catch (error) {
         
@@ -31,20 +33,22 @@ const login = async (req,res) => {
         const {email,password} = req.body;
         const admin = await User.findOne({email,isAdmin:true});
 
+
         if (admin){
-            const passwordMatch = bcrypt.compare(password,admin.password)
+            const passwordMatch =await bcrypt.compare(password,admin.password)
+            
 
             if(passwordMatch){
-                req.session.admin = true;
+                req.session.admin = admin._id;
                 return res.redirect("/admin")
             }
             else{
-                return res.redirect("/admin/login")
+                return res.render("admin-login",{message:"Incorrect Password"});
             }
 
         }
         else{
-            return res.redirect("/admin/login")
+            return res.render('admin-login',{message:"User not fuond"});
         }
         
     } catch (error) {
