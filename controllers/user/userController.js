@@ -37,6 +37,8 @@ const loadHomepage = async (req, res) => {
     try {
         
         const user = req.session.user;
+        
+        
         const products = await Product.find({isBlocked:false}).populate('category')
         if(user){
             const userData= await User.findOne({_id:user})
@@ -140,7 +142,8 @@ function generateOtp() {
 async function sendVerificationEmail(email, otp) {
 
     try {
-
+        console.log(process.env.NODEMAILER_EMAIL,process.env.NODEMAILER_PASSWORD);
+        
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             port: 587,
@@ -156,7 +159,7 @@ async function sendVerificationEmail(email, otp) {
         const info = await transporter.sendMail({
             from: process.env.NODEMAILER_EMAIL,
             to: email,
-            subject: "Your OTP is ${otp}",
+            subject: `Your OTP is ${otp}`,
             text: `Your OTP is ${otp}`,
             html: `<b>Your OTP is ${otp}</b>`
         })
@@ -319,7 +322,7 @@ const resendOtp = async (req,res) => {
 
     } catch (error) {
         console.error("Error resending OTP");
-        res.status(200).json({success:false,message:"Internal sever Error"})
+        res.status(400).json({success:false,message:"Internal sever Error"})
     }
     
 }

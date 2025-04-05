@@ -17,7 +17,7 @@ function generateOtp(){
 
 const sentVarificationEmail = async (email,otp) => {
     try {
-
+        
         const transporter = nodemailer.createTransport({
             service:"gmail",
             port:587,
@@ -38,13 +38,14 @@ const sentVarificationEmail = async (email,otp) => {
         } 
 
         const info = await transporter.sendMail(mailoptions);
+        
         console.log("Email sent :",info.messageId);
         return true;
         
         
         
     } catch (error) {
-        console.error("Error sending email",error);
+        console.error("Error sending email......",error);
         return false;
         
     }
@@ -80,8 +81,11 @@ const forgotEmailValid  = async (req,res) => {
 
         const {email} = req.body;
         const findUser = await User.findOne({email:email});
+        
         if(findUser){
             const otp = generateOtp();
+            console.log(otp);
+            
             const emailSent = await sentVarificationEmail(email,otp); 
             if(emailSent){
                 req.session.userOtp = otp;

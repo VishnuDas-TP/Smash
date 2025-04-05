@@ -29,9 +29,9 @@ router.post("/signup",usercontroller.signup)
 router.post("/verify-otp",usercontroller.verifyOtp)
 router.post("/resend-otp",usercontroller.resendOtp)
 router.get("/auth/google",passport.authenticate('google',{scope:['profile','email']}));
-router.get("/auth/google/callback",passport.authenticate('google',{failureRedirect:'/signup'}),(req,res)=>{
-    res.redirect('/')
-});
+router.get("/auth/google/callback",passport.authenticate('google',{failureRedirect:'/signup'}),(req,res)=>{ 
+    req.session.user=req.user
+    res.redirect('/')});
 
 // Login Management
 router.get("/login",usercontroller.loadLogin)
