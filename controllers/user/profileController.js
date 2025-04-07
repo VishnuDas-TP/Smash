@@ -84,7 +84,7 @@ const forgotEmailValid  = async (req,res) => {
         
         if(findUser){
             const otp = generateOtp();
-            console.log(otp);
+            // console.log(otp);
             
             const emailSent = await sentVarificationEmail(email,otp); 
             if(emailSent){
@@ -143,7 +143,7 @@ const ResendOtp= async (req,res) => {
 
         const otp = generateOtp();
         req.session.userOtp = otp;
-        const email = req.session.email;
+        const {email} = req.session.userData;
         console.log("Resend OTP to email:",email);
         const emailSent = await sentVarificationEmail(email,otp);
         if(emailSent){
