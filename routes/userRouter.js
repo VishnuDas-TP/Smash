@@ -53,6 +53,8 @@ router.get("/reset-password",profilecontroller.getResetPassPage)
 router.post("/resend-forgot-otp",profilecontroller.ResendOtp)
 router.post("/reset-password",profilecontroller.postNewPassword)
 router.get("/userProfile",userAuth,profilecontroller.userProfile)
+router.post('/updateprofile',userAuth,profilecontroller.updateProfile);
+
 
 // Address Management
 router.get("/address",userAuth,profilecontroller.getAddress)

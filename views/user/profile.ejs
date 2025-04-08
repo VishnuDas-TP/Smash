@@ -87,10 +87,10 @@
             if (!displayName) {
                 document.getElementById('nameErr').textContent = 'Display name is required';
                 isValid = false;
-            } else if (displayName.length < 2) {
-                document.getElementById('nameErr').textContent = 'Display name must be at least 2 characters long';
+            } else if (displayName.length < 3) {
+                document.getElementById('nameErr').textContent = 'Display name must be at least 3 characters long';
                 isValid = false;
-            } else if (displayName.length > 50) {
+            } else if (displayName.length > 15) {
                 document.getElementById('nameErr').textContent = 'Display name cannot exceed 50 characters';
                 isValid = false;
             } else if (!/^[a-zA-Z\s]+$/.test(displayName)) {
@@ -100,16 +100,20 @@
 
             // Validate Phone Number
             if (!phone) {
-                document.getElementById('phoneErr').textContent = 'Phone number is required';
-                isValid = false;
-            } else {
-                // Remove any non-numeric characters for validation
-                const cleanPhone = phone.replace(/\D/g, '');
-                if (cleanPhone.length < 10 || cleanPhone.length > 15) {
-                    document.getElementById('phoneErr').textContent = 'Please enter a valid phone number (10-15 digits)';
-                    isValid = false;
-                }
-            }
+    document.getElementById('phoneErr').textContent = 'Phone number is required';
+    isValid = false;
+} else {
+    // Remove any non-numeric characters for validation
+    const cleanPhone = phone.replace(/\D/g, '');
+
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+        document.getElementById('phoneErr').textContent = 'Please enter a valid phone number (10-15 digits)';
+        isValid = false;
+    } else if (/^0+$/.test(cleanPhone)) {
+        document.getElementById('phoneErr').textContent = 'Phone number cannot be all zeros';
+        isValid = false;
+    }
+}
 
             // Email validation is not needed since it's readonly
             // But if you need to validate it in the future:

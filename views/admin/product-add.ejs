@@ -4,7 +4,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     .image-upload-box {
@@ -30,8 +29,19 @@
     }
 
     .error-message {
-        color: red;
+        color: #dc3545;
         font-size: 0.85rem;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .form-control.is-invalid:focus,
+    .form-select.is-invalid:focus {
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
     }
 
     #imagePreviewModal .modal-dialog {
@@ -71,7 +81,6 @@
                                             </option>
                                         <% } %>
                                     </select>
-                                    
                                     <div id="brand-error" class="error-message"></div>
                                 </div>
                             </div>
@@ -98,7 +107,7 @@
                                 <div class="col-lg-4">
                                     <div class="mb-4">
                                         <label class="form-label">Stock</label>
-                                        <input placeholder="" name="quantity" type="text" class="form-control border">
+                                        <input placeholder="" name="quantity" type="text" class="form-control border" required>
                                         <div id="quantity-error" class="error-message"></div>
                                     </div>
                                 </div>
@@ -152,7 +161,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary" onclick="return handleFormSubmit()">Publish Product</button>
+                            <button type="button" class="btn btn-primary" onclick="handleFormSubmit()">Publish Product</button>
                         </form>
                     </div>
                 </div>
@@ -189,18 +198,19 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
     let currentImageIndex = 0;
     let cropper;
     const validImageFormats = ["image/jpeg", "image/png", "image/jpg"];
-    
+
     document.querySelectorAll('.image-upload-box').forEach(box => {
         box.addEventListener('click', function () {
             const input = this.querySelector('input[type="file"]');
             input.click();
         });
-    
+
         const input = box.querySelector('input[type="file"]');
         input.addEventListener('change', function (event) {
             const file = event.target.files[0];
@@ -233,7 +243,7 @@
             }
         });
     });
-    
+
     document.getElementById('saveCroppedImage').addEventListener('click', function () {
         const croppedCanvas = cropper.getCroppedCanvas();
         const previewImg = document.getElementById(`previewImage${currentImageIndex}`);
@@ -257,6 +267,7 @@
     });
 
     function handleFormSubmit() {
+        clearErrorMessages();
         const isValid = validateForm();
 
         if (isValid) {              
@@ -270,153 +281,179 @@
                 confirmButtonText: 'Yes, publish it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire(
-                        'Published!',
-                        'Your product has been successfully published.',
-                        'success'
-                    ).then(() => {
+                    Swal.fire({
+                        title: 'Published!',
+                        text: 'Your product has been successfully published.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
                         document.getElementById('productForm').submit();
                     });
                 }
             });
-        } else {
-            Swal.fire({
-                title: 'Validation Error',
-                text: 'Please fix the highlighted errors before submitting.',
-                icon: 'error',
-                confirmButtonColor: '#3085d6',
-                confirmButtonText: 'OK'
-            });
-        }
-
-        return false; // Prevent default form submission to enable SweetAlert processing
+        } 
+        // No need for else block since errors are now shown individually
     }
-    
+
     function validateForm() {
-    clearErrorMessages();
-    let isValid = true;
-    const productName = document.getElementsByName('productName')[0].value.trim();
-    if (!productName) {
-        displayErrorMessage('productName-error', 'Product name is required.');
-        isValid = false;
-    } else if (productName.length < 3 || productName.length > 100) {
-        displayErrorMessage('productName-error', 'Product name must be between 3 and 100 characters.');
-        isValid = false;
-    } else if (!/^[a-zA-Z0-9\s\-&()]+$/.test(productName)) {
-        displayErrorMessage('productName-error', 'Product name can only contain letters, numbers, spaces, and special characters like -&().');
-        isValid = false;
-    }
-    const description = document.getElementById('descriptionid').value.trim();
-    if (!description) {
-        displayErrorMessage('description-error', 'Product description is required.');
-        isValid = false;
-    } else if (description.length < 10 || description.length > 1000) {
-        displayErrorMessage('description-error', 'Description must be between 10 and 1000 characters.');
-        isValid = false;
-    }
-    const salePrice = document.getElementsByName('salePrice')[0].value.trim();
-    if (!salePrice) {
-        displayErrorMessage('salePrice-error', 'Sale price is required.');
-        isValid = false;
-    } else {
-        const price = parseFloat(salePrice);
-        if (isNaN(price) || price < 0 ) {
-            displayErrorMessage('salePrice-error', 'Please enter a valid non-negative number.');
-            isValid = false;
-        } else if (!/^\d+(\.\d{1,2})?$/.test(salePrice)) {
-            displayErrorMessage('salePrice-error', 'Price must have up to 2 decimal places.');
-            isValid = false;
-        }
-    }
-    if (!regularPrice) {
-        displayErrorMessage('regularPrice-error', 'Sale price is required.');
-        isValid = false;
-    } else {
-        const price = parseFloat(regularPrice);
-        if (isNaN(price) || price < 0 ) {
-            displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative number.');
-            isValid = false;
-        } else if (!/^\d+(\.\d{1,2})?$/.test(regularPrice)) {
-            displayErrorMessage('regularPrice-error', 'Price must have up to 2 decimal places.');
-            isValid = false;
-        }
-    }
-    const quantity = document.getElementsByName('quantity')[0].value.trim();
-    if (!quantity) {
-        displayErrorMessage('quantity-error', 'Stock quantity is required.');
-        isValid = false;
-    } else {
-        const qty = parseInt(quantity);
-        if (isNaN(qty) || qty < 0) {
-            displayErrorMessage('quantity-error', 'Please enter a valid non-negative number.');
-            isValid = false;
-        }
-    }
-    const color = document.getElementsByName('color')[0].value.trim();
-    if (!color) {
-        displayErrorMessage('color-error', 'Color is required.');
-        isValid = false;
-    } else if (color.length < 2 || color.length > 50) {
-        displayErrorMessage('color-error', 'Color must be between 2 and 50 characters.');
-        isValid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(color)) {
-        displayErrorMessage('color-error', 'Color should contain only alphabetic characters.');
-        isValid = false;
-    }
-    const brand = document.getElementsByName('brand')[0].value.trim();
-    if (!brand) {
-        displayErrorMessage('brand-error', 'Please select a brand.');
-        isValid = false;
-    }
+        let isValid = true;
 
-    const category = document.getElementsByName('category')[0].value.trim();
-    if (!category) {
-        displayErrorMessage('category-error', 'Please select a category.');
-        isValid = false;
-    }
-    const images = document.querySelectorAll('input[name="images"]');
-    const validImageFormats = ["image/jpeg", "image/png", "image/jpg"];
-    let imageSelected = false;
+        // Product Name
+        const productNameInput = document.getElementsByName('productName')[0];
+        const productName = productNameInput.value.trim();
+        if (!productName) {
+            markInvalid(productNameInput, 'productName-error', 'Product name is required.');
+            isValid = false;
+        } else if (productName.length < 3 || productName.length > 100) {
+            markInvalid(productNameInput, 'productName-error', 'Product name must be between 3 and 100 characters.');
+            isValid = false;
+        } else if (!/^[a-zA-Z0-9\s\-&()]+$/.test(productName)) {
+            markInvalid(productNameInput, 'productName-error', 'Product name can only contain letters, numbers, spaces, and -&().');
+            isValid = false;
+        }
 
-    images.forEach((input, index) => {
-        if (input.files.length > 0) {
-            imageSelected = true;
-            const file = input.files[0];
-            if (!validImageFormats.includes(file.type)) {
-                displayErrorMessage(`imageError${index + 1}`, 'Invalid image format. Only JPG and PNG are allowed.');
+        // Brand
+        const brandSelect = document.getElementsByName('brand')[0];
+        const brand = brandSelect.value.trim();
+        if (!brand) {
+            markInvalid(brandSelect, 'brand-error', 'Please select a brand.');
+            isValid = false;
+        }
+
+        // Description
+        const descriptionInput = document.getElementById('descriptionid');
+        const description = descriptionInput.value.trim();
+        if (!description) {
+            markInvalid(descriptionInput, 'description-error', 'Product description is required.');
+            isValid = false;
+        } else if (description.length < 10 || description.length > 1000) {
+            markInvalid(descriptionInput, 'description-error', 'Description must be between 10 and 1000 characters.');
+            isValid = false;
+        }
+
+        // Regular Price
+        const regularPriceInput = document.getElementsByName('regularPrice')[0];
+        const regularPrice = regularPriceInput.value.trim();
+        if (!regularPrice) {
+            markInvalid(regularPriceInput, 'regularPrice-error', 'Regular price is required.');
+            isValid = false;
+        } else {
+            const price = parseFloat(regularPrice);
+            if (isNaN(price) || price < 0) {
+                markInvalid(regularPriceInput, 'regularPrice-error', 'Please enter a valid non-negative number.');
                 isValid = false;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                displayErrorMessage(`imageError${index + 1}`, 'Image size must be less than 5MB.');
+            } else if (!/^\d+(\.\d{1,2})?$/.test(regularPrice)) {
+                markInvalid(regularPriceInput, 'regularPrice-error', 'Price must have up to 2 decimal places.');
                 isValid = false;
             }
         }
-    });
 
-    if (!imageSelected) {
-        displayErrorMessage('imageError1', 'Please upload at least one product image.');
-        isValid = false;
+        // Sale Price
+        const salePriceInput = document.getElementsByName('salePrice')[0];
+        const salePrice = salePriceInput.value.trim();
+        if (!salePrice) {
+            markInvalid(salePriceInput, 'salePrice-error', 'Sale price is required.');
+            isValid = false;
+        } else {
+            const price = parseFloat(salePrice);
+            if (isNaN(price) || price < 0) {
+                markInvalid(salePriceInput, 'salePrice-error', 'Please enter a valid non-negative number.');
+                isValid = false;
+            } else if (!/^\d+(\.\d{1,2})?$/.test(salePrice)) {
+                markInvalid(salePriceInput, 'salePrice-error', 'Price must have up to 2 decimal places.');
+                isValid = false;
+            }
+        }
+
+        // Quantity
+        const quantityInput = document.getElementsByName('quantity')[0];
+        const quantity = quantityInput.value.trim();
+        if (!quantity) {
+            markInvalid(quantityInput, 'quantity-error', 'Stock quantity is required.');
+            isValid = false;
+        } else {
+            const qty = parseInt(quantity);
+            if (isNaN(qty) || qty < 0) {
+                markInvalid(quantityInput, 'quantity-error', 'Please enter a valid non-negative number.');
+                isValid = false;
+            }
+        }
+
+        // Color
+        const colorInput = document.getElementsByName('color')[0];
+        const color = colorInput.value.trim();
+        if (!color) {
+            markInvalid(colorInput, 'color-error', 'Color is required.');
+            isValid = false;
+        } else if (color.length < 2 || color.length > 50) {
+            markInvalid(colorInput, 'color-error', 'Color must be between 2 and 50 characters.');
+            isValid = false;
+        } else if (!/^[a-zA-Z\s]+$/.test(color)) {
+            markInvalid(colorInput, 'color-error', 'Color should contain only alphabetic characters.');
+            isValid = false;
+        }
+
+        // Category
+        const categorySelect = document.getElementsByName('category')[0];
+        const category = categorySelect.value.trim();
+        if (!category) {
+            markInvalid(categorySelect, 'category-error', 'Please select a category.');
+            isValid = false;
+        }
+
+        // Images
+        const images = document.querySelectorAll('input[name="images"]');
+        let imageSelected = false;
+        images.forEach((input, index) => {
+            if (input.files.length > 0) {
+                imageSelected = true;
+                const file = input.files[0];
+                if (!validImageFormats.includes(file.type)) {
+                    displayErrorMessage(`imageError${index + 1}`, 'Invalid image format. Only JPG and PNG are allowed.');
+                    input.closest('.image-upload-box').classList.add('is-invalid');
+                    isValid = false;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    displayErrorMessage(`imageError${index + 1}`, 'Image size must be less than 5MB.');
+                    input.closest('.image-upload-box').classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+        });
+
+        if (!imageSelected) {
+            displayErrorMessage('imageError1', 'Please upload at least one product image.');
+            document.getElementById('imageBox1').classList.add('is-invalid');
+            isValid = false;
+        }
+
+        return isValid;
     }
 
-    return isValid;
-}
-
-function displayErrorMessage(elementId, message) {
-    const errorElement = document.getElementById(elementId);
-    if (errorElement) {
-        errorElement.innerText = message;
-        errorElement.style.display = "block";
+    function markInvalid(element, errorId, message) {
+        element.classList.add('is-invalid');
+        displayErrorMessage(errorId, message);
     }
-}
 
-function clearErrorMessages() {
-    document.querySelectorAll('.error-message').forEach(el => {
-        el.innerText = '';
-        el.style.display = 'none';
-    });
-}
-    </script>
-    
-    
+    function displayErrorMessage(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            console.log(`Error displayed: ${message}`); // Debugging
+        }
+    }
+
+    function clearErrorMessages() {
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none';
+        });
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+    }
+</script>
 
 <%- include("../../views/partails/admin/footer.ejs") %>

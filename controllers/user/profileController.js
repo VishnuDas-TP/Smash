@@ -84,7 +84,7 @@ const forgotEmailValid  = async (req,res) => {
         
         if(findUser){
             const otp = generateOtp();
-            // console.log(otp);
+            console.log(email);
             
             const emailSent = await sentVarificationEmail(email,otp); 
             if(emailSent){
@@ -143,7 +143,8 @@ const ResendOtp= async (req,res) => {
 
         const otp = generateOtp();
         req.session.userOtp = otp;
-        const {email} = req.session.userData;
+        console.log(req.session.userData,req.session.email)
+        const {email} = req.session.userData || req.session;
         console.log("Resend OTP to email:",email);
         const emailSent = await sentVarificationEmail(email,otp);
         if(emailSent){
@@ -159,33 +160,29 @@ const ResendOtp= async (req,res) => {
     }
 } 
 
-const postNewPassword = async (req,res) => {
+const postNewPassword = async (req, res) => {
     try {
-
-        const  {newPass1,newPass2} = req.body;
+        const { newPass1, newPass2 } = req.body;
         const email = req.session.email;
-        
-        
-        if(newPass1 === newPass2){
+
+        if (newPass1 === newPass2) {
             const passwordHash = await securePassword(newPass1);
-            
-            
+
             await User.updateOne(
-                {email:email},
-                {$set:{password:passwordHash}}
-            )
-            res.redirect("/login");
+                { email: email },
+                { $set: { password: passwordHash } }
+            );
+            return res.status(200).json({ success: true, message: "Password changed successfully", redirect: "/" });
+        } else {
+            return res.status(400).json({ success: false, message: "Passwords do not match" });
         }
-        else{
-            res.render("reset-password",{message:"password do not match"});
-        }
-        
+
     } catch (error) {
         console.error(error);
-        res.redirect("/pageNotFound");
-        
+        return res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
     }
-}
+};
+
 
 const userProfile = async (req,res) => {
     try {
@@ -204,6 +201,33 @@ const userProfile = async (req,res) => {
         
     }
 }
+
+const updateProfile = async (req, res) => {
+    try {
+        const id = req.query.id;
+        const data = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate({_id:id},
+            {
+                username: data.dname,
+                phone: data.phone,
+            },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.redirect(`/userProfile`)
+
+        // res.status(200).json({ message: "Profile updated successfully" });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "An error occurred while updating the profile",error: error.message, });
+    }
+};
 
 const getAddress = async (req, res) => {
     try {
@@ -356,6 +380,7 @@ module.exports = {
     ResendOtp,
     postNewPassword,
     userProfile,
+    updateProfile,
     getAddress,
     getAddAddress,
     saveAddress,
