@@ -27,7 +27,7 @@ const getSaleReport=async (req,res)=>{
         const totalOrders=await Order.countDocuments({...filter ,  orderStatus: { $nin: ["returned", "Cancelled"] }});
        
         if(startDate||endDate){
-            console.log('sdisahlihAOIFUa');
+            // console.log('sdisahlihAOIFUa');
             res.status(200).json({
                 orders,
                 totalSales:totalSales[0]?.total||0,

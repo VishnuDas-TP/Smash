@@ -33,16 +33,16 @@
                                                 <h5 class="product-name"><a href="/productDetails?id=<%= item.id %>"><%= item.name %></a></h5>
                                                 <p class="font-xs"><%= item.description.substring(0,150) %>...</p>
                                             </td>
-                                            <td class="price" data-title="Price"><span>$<%= item.price %></span></td>
+                                            <td class="price" data-title="Price"><span>₹<%= item.price %></span></td>
                                             <td class="text-center" data-title="Stock">
                                                 <span class="<%= item.stockStatus ? 'color3' : 'text-danger' %> font-weight-bold"><%= item.stock %></span>
                                             </td>
                                             <td class="text-right" data-title="Cart">
                                                 <% if (item.stockStatus) { %>
-                                                    <form action="/addToCart?id=<%= item.productId %>" method="POST"
+                                                    <form action="#" method=""
                                                         style="display: inline; ">
                                                         <input type="hidden" name="quantity" id="cart-quantity" value="1">
-                                                        <button type="submit" class="btn btn-sm"><i class="fi-rs-shopping-bag mr-5"></i>Add to cart</button>
+                                                        <button type="submit" onclick="addToCart('<%= item.id._id %>')" class="btn btn-sm"><i class="fi-rs-shopping-bag mr-5"></i>Add to cart</button>
                                                     </form>
                                                     
                                                 <% } else { %>
@@ -72,12 +72,12 @@
 
 <script>
     function addToCart(productId) {
-        fetch(`/addToCart?id=${productId}`,{method:'post'})
+        fetch(`/addToCart?productId=${productId}&quantity=1`,{method:'post'})
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.success ||data.status == 200) {
                     Swal.fire('Added!', data.message, 'success');
-                } else {a
+                } else {
                     Swal.fire('Oops!', data.message, 'error');
                 }
             })

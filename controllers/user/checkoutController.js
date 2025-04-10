@@ -35,11 +35,19 @@ const getCheckOut = async (req, res) => {
 
 
         if (singleProductId) {
-            product = await Product.findById(singleProductId);
+            product = await Product.findById(singleProductId).populate('category');
             if (!product) {
                 return res.status(404).send("Product not found");
             }
-            totalPrice = singleProductQty * product.salePrice
+
+            let price = product.salePrice;
+            let categoryOffer = product.category.categoryOffer
+
+            if( categoryOffer > product.productOffer){
+                price= product.regularPrice - (  categoryOffer / 100 )  * product.regularPrice
+            }
+            
+            totalPrice = singleProductQty * price
         }
         else {
             cart = await Cart.findOne({ userId: userId }).populate('items.productId')

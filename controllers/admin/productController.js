@@ -179,10 +179,6 @@ const addProductOffer = async (req, res) => {
 
         await findProduct.save();
 
-        // Reset the category offer to 0
-        findCategory.categoryOffer = 0;
-        await findCategory.save();
-
         res.json({ status: true });
 
     } catch (error) {
@@ -253,7 +249,9 @@ const getEditProduct = async (req,res) => {
         const product = await Product.findById(id).populate('category');
         
         const category = await Category.find({});
+        
         const brand = await Brand.find({});
+
         res.render("edit-product",{
             product:product,
             category:category,
@@ -273,6 +271,7 @@ const editProduct = async (req,res) => {
         
         const product = await Product.findById(id)
         const data = req.body;
+        
                                                                         
         const existingProduct = await Product.findOne({
             productName:data.productName,
@@ -303,7 +302,8 @@ const editProduct = async (req,res) => {
             regularPrice:data.regularPrice,
             salePrice:data.salePrice,
             quantity:data.quantity,
-            color:data.color
+            color:data.color,
+            category:category
         }
 
         if(req.files.length>0){

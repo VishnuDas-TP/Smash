@@ -1,5 +1,6 @@
 const Cart =require("../../models/cartSchema");
 const Product = require("../../models/productSchema");
+const Category = require('../../models/categorySchema')
 
 
 const addToCart = async (req,res) => {
@@ -21,7 +22,7 @@ const addToCart = async (req,res) => {
         console.log(productId);
         
 
-        const productData = await Product.findOne({_id:productId})
+        const productData = await Product.findOne({_id:productId}).populate('category')
         if(!productData){
             console.log(`Product with ID ${productId} not found`);
             return res.status(404).redirect("/pageNotFound");
@@ -31,8 +32,19 @@ const addToCart = async (req,res) => {
             console.log(`Insufficient stock for product ID ${productId}.`);
          return res.status(400).json({message:"Insufficient or out of stock"})   
         }
-
-        const price = productData.salePrice;
+        
+        let price = productData.salePrice;
+        // console.log(price);
+        
+        
+        const categoryOffer = productData.category.categoryOffer
+        
+        if(categoryOffer > productData.productOffer){
+            
+            price= productData.regularPrice - (  categoryOffer / 100 )  * productData.regularPrice
+            // console.log("cateoofer : ",price);
+        }
+        
         const totalPrice = price * qty;
        
         
@@ -49,10 +61,14 @@ const addToCart = async (req,res) => {
                 // Update existing product in cart
                 const existingQuantity = cart.items[productIndex].quantity;
 
-                if (productData.quantity < existingQuantity + qty ||(existingQuantity+qty)>5) {
+                if (productData.quantity < existingQuantity + qty ) {
                     console.log( `Not enough stock to add ${qty} units for product ID ${productId}.`);
                     return res.json({message:"Not Enough Stock"})
                     // return res.redirect('/showCart');   
+                }
+                if((existingQuantity+qty)>5){
+                    console.log( `Maximum quantity reached for product ID ${productId}.`);
+                    return res.json({message:"Maximum Quantity Reached"})
                 }
 
                 cart.items[productIndex].quantity += qty;
@@ -80,7 +96,7 @@ const addToCart = async (req,res) => {
         console.log(`Cart saved successfully for user ID ${userId}.`);
         res.status(200).json({message:"Added to Cart",status:200})
     } catch (error) {
-        console.error('Error adding to cart:', );
+        console.error('Error adding to cart:', error);
         res.redirect('/pageError');
     }
 };

@@ -415,6 +415,7 @@ const getProductDetails = async (req, res) => {
         finalSalePrice: Math.floor(finalSalePrice),
         highestOffer
       });
+      
   
     } catch (error) {
         console.error(error);
