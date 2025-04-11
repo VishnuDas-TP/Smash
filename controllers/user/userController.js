@@ -464,7 +464,7 @@ const getProductDetails = async (req, res) => {
         }
 
         // Fetch products with filtering and sorting applied
-        const products = await Product.find(query).sort(sortCriteria).skip((page - 1) * limit).limit(Number(limit));
+        const products = await Product.find(query).sort(sortCriteria).populate('category').skip((page - 1) * limit).limit(Number(limit));
          
         const totalProducts = await Product.countDocuments(query);
         const totalPages = Math.ceil(totalProducts / limit);

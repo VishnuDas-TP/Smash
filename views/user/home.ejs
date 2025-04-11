@@ -138,7 +138,8 @@
                                                 </div>
                                                 <div class="product-action-1 show">
                                                     <a aria-label="Add To Cart" class="action-btn hover-up"
-                                                        href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
+                                                        href="#" onclick="addToCart('<%=product._id%>')"><i
+                                                            class="fi-rs-shopping-bag-add"></i></a>
                                                 </div>
                                             </div>
                                         </div>
@@ -259,6 +260,53 @@ async function addToWishlist(productId) {
         });
     }
 }
+function addToCart(productId) {
+            console.log(productId)
+            const quantity = 1
+            fetch(`/addToCart?productId=${productId}&quantity=${quantity}`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(()=>location.href="/cart")
+                    } else if (data.status === 400) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Oops!',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }else if(data.status === 404){
+                        location.href = data.redirectUrl
+                    }else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message || 'Something went wrong!',
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    });
+                });
+        }
 
 
  </script>

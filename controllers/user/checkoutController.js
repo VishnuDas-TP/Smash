@@ -28,6 +28,8 @@ const getCheckOut = async (req, res) => {
         const singleProductQty = req.query.quantity || null;
 
 
+
+
         let cart = null;
         let product = null;
         let totalPrice = 0;

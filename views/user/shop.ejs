@@ -118,7 +118,7 @@
                                                     <div class="product-content-wrap">
                                                         <div class="product-category">
                                                             <a href="shop-grid-right.html">
-                                                                <%=products[i].category.name%>
+                                                                "<%=products[i].category.name%>"
                                                             </a>
                                                         </div>
                                                         <h2>
@@ -129,14 +129,44 @@
                                                         </div>
                                                         
                                                         <div class="product-price">
-                                                            <span>₹<%=products[i].salePrice%> </span>
-                                                            <span class="old-price">₹<%=products[i].regularPrice%>
-                                                            </span>
+                                                            <% 
+                                                            let hasOffer = false;
+                                                            let maxDiscountPercentage = 0;
+                                                            let discountedPrice = products[i].regularPrice;
+                                                            let originalPrice = products[i].regularPrice;
+                                                            
+                                                            // Check for product offer
+                                                            if(products[i].productOffer && products[i].productOffer > 0) {
+                                                                hasOffer = true;
+                                                                maxDiscountPercentage = products[i].productOffer;
+                                                            }
+                                                            
+                                                            // Check for category offer and compare with product offer
+                                                            if(products.category && products.category.categoryOffer && products.category.categoryOffer > 0) {
+                                                                hasOffer = true;
+                                                                // If category offer is greater, use that instead
+                                                                if(product.category.categoryOffer > maxDiscountPercentage) {
+                                                                    maxDiscountPercentage = product.category.categoryOffer;
+                                                                }
+                                                            }
+                                                            
+                                                            // Calculate the discounted price if there's an offer
+                                                            if(hasOffer) {
+                                                                // Calculate discount amount
+                                                                let discountAmount = (originalPrice * maxDiscountPercentage) / 100;
+                                                                discountedPrice = originalPrice - discountAmount;
+                                                            }
+                                                            %>
+                                                            
+                                                            <span><%=discountedPrice%></span>
+                                                            <% if(hasOffer) { %>
+                                                                <span class="old-price"><%=originalPrice%></span>
+                                                            <% } %>
                                                         </div>
 
                                                         <div class="product-action-1 show">
                                                             <a aria-label="Add To Cart" class="action-btn hover-up"
-                                                                href="/addToCart?id=<%=products[i]._id%>"><i
+                                                                href="#" onclick="addToCart(`<%=products[i]._id%>`)"><i
                                                                     class="fi-rs-shopping-bag-add"></i></a>
                                                         </div>
                                                     </div>
@@ -170,23 +200,53 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-            async function addtocart(id) {
-                console.log('ajshdgj');
-                const quantity = 1; // Fixed quantity; you can modify this based on your requirements.
-
-                try {
-                    const response = await fetch(`/addToCart?id=${id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json', // Inform server that the body is JSON
-                        },
-                        body: JSON.stringify({ quantity }), // Send data as a JSON string
-                    });
-                } catch (error) {
-                    console.error('Network error:', error);
-                    alert('Something went wrong. Please try again.');
+            function addToCart(productId) {
+            console.log(productId)
+            const quantity = 1
+            fetch(`/addToCart?productId=${productId}&quantity=${quantity}`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 }
-            }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(()=>location.href="/cart")
+                    } else if (data.status === 400) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Oops!',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }else if(data.status === 404){
+                        location.href = data.redirectUrl
+                    }else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message || 'Something went wrong!',
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    });
+                });
+        }
 
             async function updateProducts(page) {
                 const category = document.getElementById('category').value;
@@ -235,53 +295,70 @@
 
             // Function to render products dynamically
             function renderProducts(products) {
-                const productList = document.getElementById('productList');
-                productList.innerHTML = '';
+    const productList = document.getElementById('productList');
+    productList.innerHTML = '';
 
-                products.forEach(product => {
-                    const productCard = `
-                
-                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                        <div class="product-cart-wrap mb-30">
-                                            <div class="product-img-action-wrap">
-                                                <div class="product-img product-img-zoom">
-                                                    <a href="/productDetails?id=${product._id}">
-                                                        <img class="default-img" src="/uploads/product-images/${product.productImage[0]}" alt="${product.productImage[0]}">
-                                                          <img class="hover-img" src="/uploads/product-images/${product.productImage[0]}" alt="">
-                                                    </a>
-                                                </div>
-                                                
-                                                
-                                                
-                                            </div>
-                                            <div class="product-content-wrap">
-                                                <div class="product-category">
-                                                    <a href="shop-grid-right.html">${product.category}</a>
-                                                </div>
-                                                <h2>${product.productName}</h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
-                                                        <span>${product.productOffer}</span>
-                                                    </span>
-                                                </div>
-                                                <div class="product-price">
-                                                    <span>₹${product.salePrice} </span>
-                                                    <span class="old-price">₹${product.regularPrice} </span>
-                                                </div>
-                                                
-                                                <div class="product-action-1 show">
-                                                    <a aria-label="Add To Cart" class="action-btn hover-up" onClick="addtocart(${product._id})"><i class="fi-rs-shopping-bag-add"></i></a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+    products.forEach(product => {
+        // Initialize variables for pricing logic
+        let hasOffer = false;
+        let maxDiscountPercentage = 0;
+        let discountedPrice = product.regularPrice;
+        let originalPrice = product.regularPrice;
 
+        // Check for product offer
+        if (product.productOffer && product.productOffer > 0) {
+            hasOffer = true;
+            maxDiscountPercentage = product.productOffer;
+        }
 
-            
-            `;
-                    productList.innerHTML += productCard;
-                });
+        // Check for category offer and compare with product offer
+        if (product.category && product.category.categoryOffer && product.category.categoryOffer > 0) {
+            hasOffer = true;
+            if (product.category.categoryOffer > maxDiscountPercentage) {
+                maxDiscountPercentage = product.category.categoryOffer;
             }
+        }
+
+        // Calculate the discounted price if there's an offer
+        if (hasOffer) {
+            let discountAmount = (originalPrice * maxDiscountPercentage) / 100;
+            discountedPrice = originalPrice - discountAmount;
+        }
+
+        const productCard = `
+            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                <div class="product-cart-wrap mb-30">
+                    <div class="product-img-action-wrap">
+                        <div class="product-img product-img-zoom">
+                            <a href="/productDetails?id=${product._id}">
+                                <img class="default-img" src="/Uploads/product-images/${product.productImage[0]}" alt="${product.productImage[0]}">
+                                <img class="hover-img" src="/Uploads/product-images/${product.productImage[0]}" alt="">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="product-content-wrap mb-10">
+                        <div class="product-category">
+                            <a href="shop-grid-right.html">${product.category.name}</a>
+                        </div>
+                        <h2>${product.productName}</h2>
+                        <div class="product-rate">
+                            <div class="product-rating" style="width:70%">
+                            </div>
+                        </div>
+                        <div class="product-price">
+                            <span>₹${discountedPrice.toFixed(2)}</span>
+                            ${hasOffer ? `<span class="old-price">₹${originalPrice.toFixed(2)}</span>` : ''}
+                        </div>
+                        <div class="product-action-1 show">
+                            <a aria-label="Add To Cart" class="action-btn hover-up" onClick="addtocart(${product._id})"><i class="fi-rs-shopping-bag-add"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        productList.innerHTML += productCard;
+    });
+}
 
             // Add event listeners to inputs
             document.getElementById('category').addEventListener('change', updateProducts);
