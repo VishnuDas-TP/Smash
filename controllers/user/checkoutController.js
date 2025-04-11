@@ -27,19 +27,21 @@ const getCheckOut = async (req, res) => {
         const singleProductId = req.query.productId || null;
         const singleProductQty = req.query.quantity || null;
 
-
-
-
         let cart = null;
         let product = null;
         let totalPrice = 0;
         let discount =0;
-
-
+        
+        
         if (singleProductId) {
             product = await Product.findById(singleProductId).populate('category');
+            const singleProductStock = product.quantity;
+            
+            if(singleProductStock < singleProductQty){
+                return res.status(404).json({message:"Insufficient Stock"});
+            }
             if (!product) {
-                return res.status(404).send("Product not found");
+                return res.status(404).json({message:"Product not found"});
             }
 
             let price = product.salePrice;
@@ -73,7 +75,7 @@ const getCheckOut = async (req, res) => {
 
     } catch (error) {
         console.log("error loading checkout", error);
-        res.status(500)
+        res.status(500).json({message:'error loading checkout'})
     }
 }
 
