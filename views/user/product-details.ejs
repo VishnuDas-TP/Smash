@@ -153,9 +153,14 @@
 
                                             <input type="hidden" name="productId" value="<%= product._id %>">
                                             <input type="hidden" name="quantity" id="cart-quantity" value="1">
+                                            <%  if (product.quantity >0 ){%>
                                             <button type="submit" class="btn btn-success"
                                                 onclick="addToCart('<%= product._id %>')">Add to cart
                                             </button>
+                                            <% } else{ %>
+                                                <button type="button" class="button button-add-to-cart" disabled
+                                                 style="background-color: #8f7b7b; cursor: not-allowed;">Add to cart</button>
+                                                 <% } %> 
                                             <button type="button" class="btn btn-outline-secondary"
                                                 onclick="addToWishlist('<%= product._id %>')">
                                                 <i class="fi-rs-heart"></i>
@@ -169,10 +174,15 @@
                                                     onclick="increaseQuantity(event, 5, '<%=product.quantity%>')"><i
                                                         class="fi-rs-angle-small-up"></i></a>
                                             </div>
+                                          <%  if (product.quantity >0 ){%>
                                             <button type="button" class="button button-buy-now"
                                                 onclick="redirectToCheckout('<%= product._id %>')">Buy
                                                 Now</button>
-
+                                            <% } else{ %>
+                                                 <button type="button" class="button button-add-to-cart" disabled
+                                                 style="background-color: #a50d0d; cursor: not-allowed;">Sold Out</button>
+                                            <% } %>
+                                             
                                         </div>
                                         <ul class="product-meta font-xs color-grey mt-50">
 
@@ -553,41 +563,7 @@
 
         function redirectToCheckout(productId) {
             const qtyValue = document.getElementById('quantity').value;
-            fetch(`/getCheckOut?productId=${productId}&quantity=${qtyValue}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-
-            })
-                .then(response => response.json())
-                .then(data => {
-
-                    if (data.status === 404) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Oops!',
-                            text: data.message,
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: data.message || 'Something went wrong!',
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Something went wrong!',
-                    });
-                });
+            location.href = `/getCheckOut?productId=${productId}&quantity=${qtyValue}`
         }
 
 

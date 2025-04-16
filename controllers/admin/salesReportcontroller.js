@@ -6,32 +6,33 @@ const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 
 
-const getSaleReport=async (req,res)=>{
+const getSaleReport = async (req, res) => {
     try {
-        const {page=1,limit=10,startDate,endDate}=req.query;
-        console.log(req.query); 
-        const filter={};
+        const { page = 1, limit = 10, startDate, endDate } = req.query;
+        console.log(req.query);
+        const filter = {};
 
-        if(startDate||endDate){
-            filter.createdOn={};
-            if(startDate)filter.createdOn.$gte=new Date(startDate);
-            if(endDate)filter.createsOn.$lte=new Date(endDate)
+        if (startDate || endDate) {
+            filter.createdOn = {};
+            if (startDate) filter.createdOn.$gte = new Date(startDate);
+            if (endDate) filter.createsOn.$lte = new Date(endDate)
         }
 
-        const orders=await Order.find({...filter ,  orderStatus: { $nin: ["returned", "Cancelled"]}
-        }).populate('userId').populate('orderItems.product').sort({createdOn:-1}).skip((page-1)*limit).limit(parseInt(limit))
-       
-        const totalSales= await Order.aggregate([{$match:filter},{$group:{_id:null,total:{$sum:'$finalAmount'}}}]);
-        const totalDiscount=await Order.aggregate([{$match:filter},{$group:{_id:null,total:{$sum:'$discount'}}}]);
-        const uniqueCustomers=await Order.distinct('userId',filter);
-        const totalOrders=await Order.countDocuments({...filter ,  orderStatus: { $nin: ["returned", "Cancelled"] }});
-       
-        if(startDate||endDate){
+        const orders = await Order.find({ ...filter, orderStatus: { $nin: ["Returned", "Cancelled"] } }).populate('userId').populate('orderItems.product').sort({ createdOn: -1 }).skip((page - 1) * limit).limit(parseInt(limit))
+
+
+        const totalSales = await Order.aggregate([{ $match: { ...filter, orderStatus: { $nin: ["Returned", "Cancelled"] } } }, { $group: { _id: null, total: { $sum: '$finalAmount' } } }]);
+        const totalDiscount = await Order.aggregate([{ $match: { ...filter, orderStatus: { $nin: ["Returned", "Cancelled"] } } }, { $group: { _id: null, total: { $sum: '$discount' } } }]);
+        const uniqueCustomers = await Order.distinct('userId', filter);
+        const totalOrders = await Order.countDocuments({ ...filter, orderStatus: { $nin: ["Returned", "Cancelled"] } });
+        console.log(orders.length);
+
+        if (startDate || endDate) {
             // console.log('sdisahlihAOIFUa');
             res.status(200).json({
                 orders,
-                totalSales:totalSales[0]?.total||0,
-                totalDiscount:totalDiscount[0]?.total || 0,
+                totalSales: totalSales[0]?.total || 0,
+                totalDiscount: totalDiscount[0]?.total || 0,
                 uniqueCustomers: uniqueCustomers.length,
                 count: totalOrders,
                 currentPage: parseInt(page),
@@ -39,38 +40,32 @@ const getSaleReport=async (req,res)=>{
                 limit: parseInt(limit)
             })
         }
-        res.render('salesReport',{orders,
-            totalSales:totalSales[0]?.total||0,
-            totalDiscount:totalDiscount[0]?.total || 0,
+        res.render('salesReport', {
+            orders,
+            totalSales: totalSales[0]?.total || 0,
+            totalDiscount: totalDiscount[0]?.total || 0,
             uniqueCustomers: uniqueCustomers.length,
             count: totalOrders,
             currentPage: parseInt(page),
             totalPages: Math.ceil(totalOrders / limit),
             limit: parseInt(limit)
         })
-        
-
-
-        
-
-
-
 
     } catch (error) {
         console.error(error);
-        
+
     }
 }
 const pdfGenerate = async (req, res) => {
     try {
         const { start, end } = req.query;
         console.log("Query parameters:", req.query);
-        
+
         const filter = {};
 
         if (start || end) {
             filter.createdOn = {};
-            
+
             if (start) {
                 // Set time to beginning of day (00:00:00)
                 const startDate = new Date(start);
@@ -78,7 +73,7 @@ const pdfGenerate = async (req, res) => {
                 filter.createdOn.$gte = startDate;
                 console.log("Start date:", startDate);
             }
-            
+
             if (end) {
                 // Set time to end of day (23:59:59)
                 const endDate = new Date(end);
@@ -89,13 +84,13 @@ const pdfGenerate = async (req, res) => {
         }
 
         console.log("Filter being applied:", JSON.stringify(filter));
-        
-        const orders = await Order.find(filter)
+
+        const orders = await Order.find({ ...filter, orderStatus: { $nin: ["Returned", "Cancelled"] } })
             .populate('userId')
-            .populate('orderItems.product');
-        
+            .populate('orderItems.product')
+
         // console.log(`Found ${orders.length} orders`);
-        
+
         if (orders.length === 0) {
             return res.status(404).send('No orders found for the given period.');
         }
@@ -171,7 +166,7 @@ const pdfGenerate = async (req, res) => {
             }
 
             // Alternate row background
-            const rowColor = index % 2 === 0 ? '#FFFFFF' : '#F5F5F5'; 
+            const rowColor = index % 2 === 0 ? '#FFFFFF' : '#F5F5F5';
             const rowY = currentY;
 
             // Row background
@@ -194,45 +189,45 @@ const pdfGenerate = async (req, res) => {
             xPos = 30;
 
             // Fill row data
-            doc.text(`${index + 1}`, xPos, rowY + 10, { 
-                width: columnWidths[0], 
-                align: 'center' 
+            doc.text(`${index + 1}`, xPos, rowY + 10, {
+                width: columnWidths[0],
+                align: 'center'
             });
             xPos += columnWidths[0];
 
-            doc.text(order.userId.name, xPos, rowY + 10, { 
-                width: columnWidths[1], 
-                align: 'center' 
+            doc.text(order.userId.name, xPos, rowY + 10, {
+                width: columnWidths[1],
+                align: 'center'
             });
             xPos += columnWidths[1];
 
-            doc.text(productDetails, xPos, rowY + 10, { 
-                width: columnWidths[2], 
-                align: 'left' 
+            doc.text(productDetails, xPos, rowY + 10, {
+                width: columnWidths[2],
+                align: 'left'
             });
             xPos += columnWidths[2];
 
-            doc.text(totalQuantity.toString(), xPos, rowY + 10, { 
-                width: columnWidths[3], 
-                align: 'center' 
+            doc.text(totalQuantity.toString(), xPos, rowY + 10, {
+                width: columnWidths[3],
+                align: 'center'
             });
             xPos += columnWidths[3];
 
-            doc.text(new Date(order.createdOn).toLocaleDateString(), xPos, rowY + 10, { 
-                width: columnWidths[4], 
-                align: 'center' 
+            doc.text(new Date(order.createdOn).toLocaleDateString(), xPos, rowY + 10, {
+                width: columnWidths[4],
+                align: 'center'
             });
             xPos += columnWidths[4];
 
-            doc.text(`Rs. ${order.discount.toFixed(2)}`, xPos, rowY + 10, { 
-                width: columnWidths[5], 
-                align: 'center' 
+            doc.text(`Rs. ${order.discount.toFixed(2)}`, xPos, rowY + 10, {
+                width: columnWidths[5],
+                align: 'center'
             });
             xPos += columnWidths[5];
 
-            doc.text(`Rs. ${order.finalAmount.toFixed(2)}`, xPos, rowY + 10, { 
-                width: columnWidths[6], 
-                align: 'center' 
+            doc.text(`Rs. ${order.finalAmount.toFixed(2)}`, xPos, rowY + 10, {
+                width: columnWidths[6],
+                align: 'center'
             });
 
             currentY += ROW_HEIGHT;
@@ -252,17 +247,17 @@ const pdfGenerate = async (req, res) => {
 
 
 
-const excelGenerate=async (req, res) => {
+const excelGenerate = async (req, res) => {
     try {
-        const {start,end}=req.query;
-        console.log(req.query||'nott');
-        const filter={};
-        if(start||end){
-            filter.createdOn={};
-            if(start)filter.createdOn.$gte=new Date(start);
-            if(end)filter.createdOn.$lte=new Date(end)
+        const { start, end } = req.query;
+        console.log(req.query || 'nott');
+        const filter = {};
+        if (start || end) {
+            filter.createdOn = {};
+            if (start) filter.createdOn.$gte = new Date(start);
+            if (end) filter.createdOn.$lte = new Date(end)
         }
-        const orders=await Order.find(filter).populate('userId').populate('orderItems.product','productName').exec();
+        const orders = await Order.find(filter).populate('userId').populate('orderItems.product', 'productName').exec();
         const totalSales = orders.reduce((sum, order) => sum + order.finalAmount, 0);
         const totalOrders = orders.length;
         const totalDiscount = orders.reduce((sum, order) => sum + order.discount, 0);
@@ -271,52 +266,52 @@ const excelGenerate=async (req, res) => {
         // Create a new Excel workbook and worksheet
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Sheet 1');
-    
+
         // Define columns
-        
-       
+
+
         worksheet.columns = [
             { header: 'Sl No', key: 'Sno', width: 5 },
             { header: 'User Name', key: 'name', width: 15 },
-            { header: 'Products', key: 'Product', width: 50},
+            { header: 'Products', key: 'Product', width: 50 },
             { header: 'Quantity', key: 'Quantity', width: 5 },
             { header: 'Date', key: 'Date', width: 15, style: { alignment: { horizontal: 'center' } } }, // Date column
             { header: 'Discount Amount', key: 'Discount', width: 10, style: { numFmt: '#,##0.00' } }, // Format number
             { header: 'Final Amount', key: 'Final', width: 10, style: { numFmt: '#,##0.00' } }, // Format number
         ];
-    
+
         // Add some rows of data
-        for(let i=0;i<orders.length;i++){
-            console.log(orders[i].orderItems[0].product.productName||'prod');
+        for (let i = 0; i < orders.length; i++) {
+            console.log(orders[i].orderItems[0].product.productName || 'prod');
             const productDetails = orders[i].orderItems
-                    .map((product) => `${product.product.productName} (x${product.quantity})`)
-                    .join(', ');
-            worksheet.addRow({ Sno: i+1, name: orders[i].userId.name, Product: productDetails,Quantity:orders[i].orderItems.reduce((sum, product) => sum + product.quantity, 0),Date:orders[i].createdOn,Discount:orders[i].discount,Final:orders[i].finalAmount});
+                .map((product) => `${product.product.productName} (x${product.quantity})`)
+                .join(', ');
+            worksheet.addRow({ Sno: i + 1, name: orders[i].userId.name, Product: productDetails, Quantity: orders[i].orderItems.reduce((sum, product) => sum + product.quantity, 0), Date: orders[i].createdOn, Discount: orders[i].discount, Final: orders[i].finalAmount });
         }
-        worksheet.addRow({ Sno: '', name: '', Product: '',Quantity:'',Date:'',Discount:'',Final:''});
-        worksheet.addRow({ Sno: '', name: '', Product: '',Quantity:'',Date:'',Discount:'',Final:''});
-        worksheet.addRow({ Sno: '', name: 'Total Sales', Product: totalSales,Quantity:'',Date:'',Discount:'',Final:''});
-        worksheet.addRow({ Sno: '', name: ' Total Orders', Product: totalOrders,Quantity:'',Date:'',Discount:'',Final:''});
-        worksheet.addRow({ Sno: '', name: 'Total Discount', Product: totalDiscount,Quantity:'',Date:'',Discount:'',Final:''});
-        worksheet.addRow({ Sno: '', name: 'Total Customer', Product: totalCustomers,Quantity:'',Date:'',Discount:'',Final:''});
+        worksheet.addRow({ Sno: '', name: '', Product: '', Quantity: '', Date: '', Discount: '', Final: '' });
+        worksheet.addRow({ Sno: '', name: '', Product: '', Quantity: '', Date: '', Discount: '', Final: '' });
+        worksheet.addRow({ Sno: '', name: 'Total Sales', Product: totalSales, Quantity: '', Date: '', Discount: '', Final: '' });
+        worksheet.addRow({ Sno: '', name: ' Total Orders', Product: totalOrders, Quantity: '', Date: '', Discount: '', Final: '' });
+        worksheet.addRow({ Sno: '', name: 'Total Discount', Product: totalDiscount, Quantity: '', Date: '', Discount: '', Final: '' });
+        worksheet.addRow({ Sno: '', name: 'Total Customer', Product: totalCustomers, Quantity: '', Date: '', Discount: '', Final: '' });
 
 
-        
-     
+
+
         // Set headers for the response to trigger a download
         res.setHeader('Content-Disposition', 'attachment; filename=generated-file.xlsx');
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    
+
         // Send the Excel file as a response
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
         console.error(error);
-        
+
     }
 }
-const getSaleReportFilter=async (req, res) => {
-    const { dateRange, startDate, endDate ,page=1,limit=10} = req.query;
+const getSaleReportFilter = async (req, res) => {
+    const { dateRange, startDate, endDate, page = 1, limit = 10 } = req.query;
     const filter = {};
 
     // Date range logic
@@ -345,7 +340,7 @@ const getSaleReportFilter=async (req, res) => {
 
     // Fetch orders based on the filter
     const skip = (page - 1) * limit;
-    const orders = await Order.find(filter).sort({createdOn:-1})
+    const orders = await Order.find({ ...filter, orderStatus: { $nin: ["Returned", "Cancelled"] } }).sort({ createdOn: -1 })
         .populate('userId orderItems.product')
         .skip(skip)
         .limit(parseInt(limit));
@@ -357,15 +352,15 @@ const getSaleReportFilter=async (req, res) => {
 }
 
 
-module.exports={
+module.exports = {
     getSaleReport,
     pdfGenerate,
     excelGenerate,
     getSaleReportFilter
-    
 
-    
-    
 
-    
+
+
+
+
 }

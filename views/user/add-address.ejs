@@ -198,8 +198,8 @@
         // Phone validation
         if (!phone) {
             showError('phoneErr', 'Phone number is required.');
-        } else if (!phonePattern.test(phone)) {
-            showError('phoneErr', 'Phone number must be exactly 10 digits.');
+        } else if (!phonePattern.test(phone) ||  phone === '0000000000') {
+            showError('phoneErr', 'Phone number must be exactly 10 digits and cannot be zero.');
         }
     
         // Alternate phone validation (optional field)

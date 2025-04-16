@@ -56,13 +56,13 @@ const getOrderDetails= async (req,res)=>{
         }
         const user=await User.findById(userId);
         const order= await Order.findById(orderId)
-        const address=await Address.findOne({'address._id':order.address},{'address.$':1})
+        const address= order.address
         const products=await Promise.all(
             order.orderItems.map(async (item)=>{
                 return await Product.findOne({_id:item.product})
             })
         );
-        res.render('viewOrderDetails',{order,products,address:address.address[0],user})
+        res.render('viewOrderDetails',{order,products,address,user})
 
 
     } catch (error) {
@@ -275,12 +275,13 @@ const removeCoupon = async (req, res) => {
 const downloadInvoice = async (req, res) => {
     try {
         const { id } = req.query;
-        const order = await Order.findById(id).populate('orderItems.product');
-        const addressDoc = await Address.findOne({ userId: req.session.userid });
+        const order = await Order.findById(id).populate('orderItems.product').populate('address')
         if (!order) {
             return res.status(404).send("Order not found");
         }
-        const address = order.address.toString();
+        const address = order.address
+        console.log(address);
+        
 
         if (!address) {
             return res.status(404).send("Address not found");

@@ -111,9 +111,11 @@ const getCart= async (req,res) => {
         if(!userId && !cart && !products){
             console.log("failed to get data");  
         }
-
-
-        res.render("cart",{products})
+        console.log(products)
+        const activeItems = products.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
+        cart.items = activeItems;
+        await cart.save();
+        res.render("cart",{products:activeItems})
         
     } catch (error) {
         console.error(error);

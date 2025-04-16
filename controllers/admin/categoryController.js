@@ -83,17 +83,17 @@ const addCategoryOffer = async (req,res) => {
         }
         const products = await Product.find({category:category._id});
         const hasProductOffer = products.some((product)=>product.productOffer > percentage);
-        if(hasProductOffer){
-            returnres.json({status:false,message:"Product within this category already have product offer"})
-        }
+        // if(hasProductOffer){
+        //     returnres.json({status:false,message:"Product within this category already have product offer"})
+        // }
         await Category.updateOne({_id:categoryId},{$set:{categoryOffer:percentage}});
 
-        for(const product of products){
-            product.productOffer = 0;
-            product.salePrice = product.regularPrice
-            await product.save();
-        }
-        res.json({status:true});
+        // for(const product of products){
+        //     product.productOffer = 0;
+        //     product.salePrice = product.regularPrice
+        //     await product.save();
+        // }
+        // res.json({status:true});
 
     } catch (error) {
         res.status(500).json({status:false,message:"Internal server Error"})
@@ -114,13 +114,13 @@ const removeCategoryOffer =async (req,res) => {
         const percentage = category.categoryOffer;
         const products = await Product.find({category:category._id});
 
-        if(products.length>0){
-            for(const product of products){
-                product.salePrice += Math.floor(product.regularPrice * (percentage/100));
-                product.productOffer =0;
-                await product.save();
-            }
-        }
+        // if(products.length>0){
+        //     for(const product of products){
+        //         product.salePrice += Math.floor(product.regularPrice * (percentage/100));
+        //         product.productOffer =0;
+        //         await product.save();
+        //     }
+        // }
 
         category.categoryOffer =0;
         await category.save();

@@ -121,7 +121,7 @@
                                     </table>
                                 </div>
                                 
-                                <a href="/getCheckOut" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                <a href="/getCheckOut" class="btn " onclick=""> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
                                 
                             </div>
                         </div>
@@ -220,6 +220,50 @@ function confirmClear(){
         }
     })
 }
+
+// function getCheckOut(){
+//     fetch(`/getCheckOut`,{
+//         method: 'GET',
+//         headers:{
+//             'Accept': 'application/json',
+//             'Content-Type': 'application/json'
+//         }
+//     })
+//     .then(response=>response.json())
+//     .then(data=>{
+//         if(data.status == 200){
+//             Swal.fire({
+//                 icon: 'success',
+//                 title:'success',
+//                 text:data.message,
+//                 showConfirmButton:false,
+//                 timer: 1500
+//             });
+//         }else if(data.status == 404){
+//             Swal.fire({
+//                 icon: 'info',
+//                 title:'Oops',
+//                 text:data.message,
+//                 showConfirmButton: false,
+//                 timer:1500
+//         });
+//         }else{
+//             Swal.fire({
+//                 icon:'info',
+//                 title:'Oops',
+//                 text:data.message || "Something went wrong!"
+//             })
+//         }
+//     })
+//     .catch(error=>{
+//         console.error('Error : ',error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Oops',
+//             text:'Something went wrong!'
+//         })
+//     });
+// }
 
 
 </script>
