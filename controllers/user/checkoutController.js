@@ -31,7 +31,7 @@ const getCheckOut = async (req, res) => {
         let product = null;
         let totalPrice = 0;
         let discount = 0;
-
+        let price =0
 
         if (singleProductId) {
             product = await Product.findById(singleProductId).populate('category');
@@ -44,7 +44,7 @@ const getCheckOut = async (req, res) => {
                 return res.status(404).json({ message: "Product not found" });
             }
 
-            let price = product.salePrice;
+            price = product.salePrice;
             let categoryOffer = product.category.categoryOffer
 
             if (categoryOffer > product.productOffer) {
@@ -72,10 +72,12 @@ const getCheckOut = async (req, res) => {
 
 
 
+
         res.render("checkout", {
             address: address.address ? address.address || [] : [],
             product,
             cart,
+            price,
             totalPrice,
             discount,
             singleProductQty,
@@ -104,9 +106,9 @@ const placeOrderInitial = async (req, res) => {
             finalPrice,
             coupon,
             discount,
-
+            price
         } = req.body;
-        // console.log(req.body);
+        console.log(req.body);
 
 
         singleProduct && (singleProduct = JSON.parse(singleProduct));
@@ -148,7 +150,7 @@ const placeOrderInitial = async (req, res) => {
             items.push({
                 product: product._id,
                 quantity: orderQuantity,
-                price: product.price
+                price: price
             });
 
             // Calculate total price
@@ -455,9 +457,15 @@ const retryPayment = async (req, res) => {
 
 const walletPayment = async (req, res) => {
     try {
-        const { cart, totalPrice, addressId, singleProduct, finalPrice, coupon, discount } = req.body;
+        const { cart, totalPrice, addressId, singleProduct, finalPrice,price, coupon, discount } = req.body;
+        console.log(req.body);
+
+
+        if (typeof singleProduct === 'string') {
+            singleProducts = JSON.parse(singleProduct); // ✅ Convert string to object
+        }
+        
         const userId = req.session.user;
-        console.log(userId);
 
 
         if (!userId || !finalPrice || (!cart && !singleProduct)) {
@@ -481,21 +489,22 @@ const walletPayment = async (req, res) => {
 
         let orderedItems = [];
         if (singleProduct) {
-            const product = JSON.parse(singleProduct);
+
+            const product = await Product.findById(singleProducts._id);
             orderedItems.push({
                 product: product._id,
                 quantity: 1,
-                price: product.salePrice,
+                price: price,
             });
             await Product.findByIdAndUpdate(product._id, {
                 $inc: { quantity: -1 },
             });
         } else if (cart) {
-            const cartItems = JSON.parse(cart);
+            const cartItems = cart;
             orderedItems = cartItems.map(item => ({
                 product: item.productId,
                 quantity: item.quantity,
-                price: item.totalPrice / item.quantity,
+                price: item.price ,
             }));
             cartItems.forEach(async item => {
                 await Product.findByIdAndUpdate(item.productId, {
@@ -512,7 +521,7 @@ const walletPayment = async (req, res) => {
             discount: discount,
             finalAmount: finalPrice,
             userId: userId,
-            address: addressId._id,
+            address: JSON.parse(addressId),
             status: 'pending',
             paymentMethod: 'Wallet',
             paymentStatus: 'Completed',

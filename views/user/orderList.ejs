@@ -63,13 +63,10 @@
                                                 <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Return Requested' &&order.orderStatus !== 'Returned') { %>
 
                                                     <button class="btn btn-sm btn-danger"
-                                                        onclick="confirmCancelOrder('<%= order._id %>')">Cancel</button>
+                                                        onclick="confirmCancelOrder('<%= order._id %>')">Cancel
+                                                    </button>
                                                     
-                                                    <% }else if ( order.orderStatus=='Delivered' && days< 7 ){ %>
-                                                        <button class="btn btn-sm btn-danger"
-                                                    onclick="confirmReturn('<%= order._id %>')">return</button>
-                                                    
-                                                        <%}%>
+                                            <%}%>
                                             </td>
                                         </tr>
                                     <% }) %>

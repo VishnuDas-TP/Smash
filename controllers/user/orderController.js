@@ -56,13 +56,15 @@ const getOrderDetails= async (req,res)=>{
         }
         const user=await User.findById(userId);
         const order= await Order.findById(orderId)
-        const address= order.address
+        const returns = await Return.find({ orderId: orderId });
+        const totalRefund = returns.reduce((sum, ret) => sum + ret.refundAmount, 0);
+        const address= order.address || null
         const products=await Promise.all(
             order.orderItems.map(async (item)=>{
                 return await Product.findOne({_id:item.product})
             })
         );
-        res.render('viewOrderDetails',{order,products,address,user})
+        res.render('viewOrderDetails',{order,products,address,user,totalRefund})
 
 
     } catch (error) {
@@ -143,19 +145,25 @@ const getOrderCancel = async (req, res) => {
 const returnRequest=async (req,res)=>{
     try {
         const userId= req.session.user;
-        const {orderId,reason}= req.body;
+        const {orderId,productId,quantity,reason}= req.body;
+        
+        
         const order=await Order.findById(orderId);
+        const product = order.orderItems.find(item=>item.product == productId)
+
         if(!order){
             return res.status(400).json({message:'order not found'})
         }
-        const exists=await Return.findOne({orderId});
+        const exists=await Return.findOne({productId});
         if(exists){
-            return res.status(400).json({message:'order is already apply for return request'})
+            return res.status(400).json({message:'product is already apply for return request'})
         }
-        const refundAmount=order.finalAmount;
+        const refundAmount=product.price;
         const newReturn=new Return({
             userId,
             orderId,
+            productId,
+            quantity,
             reason,
             refundAmount,
 
@@ -164,9 +172,10 @@ const returnRequest=async (req,res)=>{
         await newReturn.save();
         console.log("return working");
         
-        await Order.findByIdAndUpdate(orderId, { orderStatus: "Return Requested" }, { new: true });
+      product.returnStatus = "Return Requested"
+      await order.save()
 
-        console.log("order status changed");
+        console.log("Return Requested", product);
         
         
         return res.status(200).json({message:'return request is successfully applied'})

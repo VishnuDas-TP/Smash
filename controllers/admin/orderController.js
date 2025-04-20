@@ -117,6 +117,7 @@ const returnRequest = async (req, res) => {
             return res.json({ message: 'retun id not found' })
 
         }
+        const productId = returnData.productId
         const orderId = returnData.orderId;
         const userId = returnData.userId;
         const amount = returnData.refundAmount;
@@ -124,20 +125,28 @@ const returnRequest = async (req, res) => {
 
         if (status == 'approved') {
             const wallet = await Wallet.findOneAndUpdate({ userId }, { $inc: { balance: amount }, $push: { transactions: { type: 'Refund', amount, orderId, description: 'Refund for your returned product' } } },{upsert:true})
-            // console.log(wallet);
-
+            
             returnData.returnStatus = 'approved';
             await returnData.save();
-            const order = await Order.findByIdAndUpdate(orderId, { $set: { orderStatus: 'Returned' } }).populate('orderItems')
-
-            await Promise.all(order.orderItems.map(async (item) => {
-                await Product.findByIdAndUpdate(item.product, { $inc: {quantity: item.quantity } })
-            }))
+            
+            const order=await Order.findById(orderId);
+            const product = order.orderItems.find(item=>item.product.toString() == productId.toString())
+            console.log(product);
+            product.returnStatus = "Return Approved"
+           
+            await order.save()
+    
+       
+            await Product.findByIdAndUpdate(productId, { $inc: {quantity: product.quantity } })
+            
 
         } else if (status == 'rejected') {
             returnData.returnStatus = status;
             await returnData.save();
-            await Order.findByIdAndUpdate(orderId, { $set: { orderStatus: 'Return Requested' } })
+            const order=await Order.findById(orderId);
+            const product = order.orderItems.find(item=>item.product == productId)
+            product.returnStatus = "Return Rejected"
+            await order.save();
 
         } else {
             return res.status(400).json({ message: 'something wend wrong' })

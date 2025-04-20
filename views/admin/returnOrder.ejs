@@ -14,6 +14,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th scope="col" class="text-uppercase text-muted small fw-bold">Order ID</th>
+                                <th scope="col" class="text-uppercase text-muted small fw-bold">Product ID</th>
                                 <th scope="col" class="text-uppercase text-muted small fw-bold">User</th>
                                 <th scope="col" class="text-uppercase text-muted small fw-bold">Reason</th>
                                 <th scope="col" class="text-uppercase text-muted small fw-bold">Refund Amount</th>
@@ -26,6 +27,7 @@
                             <% returns.forEach(returnData => { %>
                                 <tr>
                                     <td class="align-middle"><%= returnData.orderId?.orderId || 'N/A' %></td>
+                                    <td class="align-middle"><%= returnData?.productId || 'N/A' %></td>
                                     <td class="align-middle"><%= returnData.userId?.name || 'N/A' %></td>
                                     <td class="align-middle">
                                         <div class="text-truncate" style="max-width: 200px;">

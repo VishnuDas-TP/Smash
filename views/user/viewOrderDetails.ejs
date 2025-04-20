@@ -92,7 +92,7 @@
                         </p>
                     </div>
                     <div class="order-total">
-                        <h3>Total: <span class="text-primary">₹ <%= order.finalAmount.toLocaleString() %></span></h3>
+                        <h3>Total: <span class="text-primary">₹ <%= order.finalAmount - totalRefund %></span></h3>
                     </div>
                 </div>
 
@@ -134,9 +134,36 @@
                                     <p>Qty: <%= order.orderItems[i].quantity %>
                                     </p>
                                 </div>
-                                <div class="product-price ms-auto">
+                                <% if(order.orderItems[i].returnStatus.trim() != "Not Requested"){%>
+                                    <div class="product-price ms-auto mr-15 bg-danger p-1 rounded text-white">
+                                        <h5>₹ <%= order.orderItems[i].price %>
+                                        </h5>
+                                    </div>
+                               <% } else{%>
+                                <div class="product-price ms-auto mr-15">
                                     <h5>₹ <%= order.orderItems[i].price %>
                                     </h5>
+                                </div>
+                               <%} %>
+                                
+                                <div>
+                                    <% let days=(Date.now() - new Date(order.createdOn)) / (1000 * 60 * 60 * 24); %>
+                                    <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Return Requested' &&order.orderStatus !== 'Returned') { %>
+
+                                        <button class="btn btn-sm btn-danger"
+                                            onclick="confirmCancelOrder('<%= order._id %>')">Cancel</button>
+                                        
+                                        <% }else if ( order.orderStatus=='Delivered' && days< 7 ){ %>
+                                            <% if ( order.orderItems[i].returnStatus=='Not Requested' && days< 7 ){ %>
+                                                <button class="btn btn-sm btn-danger"
+                                                    onclick="confirmReturn('<%= order._id %>' , '<%= order.orderItems[i].product %>' , '<%= order.orderItems[i].quantity %>')">return</button>
+
+                                                <%}else{%>
+                                                    <span class="bg-info p-1 rounded text-white" >
+                                                        <%= order.orderItems[i].returnStatus %>
+                                                    </span>
+                                                    <%}%>
+                                                        <%}%>
                                 </div>
                             </div>
                             <% } %>
@@ -152,8 +179,7 @@
                                 <%= address.name %>
                             </p>
                             <p>
-                                <%= address.streetAddress %>, <%= address.city %>, <%= address.state %> - <%=
-                                                address.pincode %>
+                                <%= address.streetAddress %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
                             </p>
                             <p>Phone: <%= address.phone %>
                             </p>
@@ -168,9 +194,9 @@
 
                         <div class="order-summary-details">
                             <h6>Order Summary</h6>
-                            <p>Subtotal: ₹<%= order.totalPrice.toLocaleString() %>
+                            <p>Subtotal: ₹<%= order.totalPrice -totalRefund %>
                             </p>
-                            <p>Discount: ₹<%= order.discount.toLocaleString() %>
+                            <p>Discount: ₹<%= order.discount  %>
                             </p>
                             <% if(order.couponApplied==true){ %>
                                 <p class="coupon-text">
@@ -179,7 +205,7 @@
                                 <% } %>
 
                                     <hr>
-                                    <h5>Total: ₹<%= order.finalAmount.toLocaleString() %>
+                                    <h5>Total: ₹<%= order.finalAmount - totalRefund %>
                                     </h5>
                         </div>
                     </div>
@@ -268,6 +294,56 @@
                     razorpay.open();
                 } catch (error) {
                     Swal.fire({ title: 'Payment Error', text: error.message || 'Failed to retry payment', icon: 'error' });
+                }
+            }
+
+            async function confirmReturn(orderId, productId, quantity) {
+                console.log("orderId :", orderId, "productId :", productId, "quantity :", quantity);
+
+                try {
+                    const result = await Swal.fire({
+                        title: "Return Order?",
+                        icon: "warning",
+                        text: "Reason for Returning Product",
+                        html: `<textarea id="returnReason" class="swal2-textarea" placeholder="Enter your reason here"></textarea>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Submit',
+                        cancelButtonText: 'Cancel',
+                        preConfirm: () => {
+                            const reason = document.getElementById('returnReason').value.trim();
+                            if (!reason) {
+                                Swal.showValidationMessage('Reason cannot be empty');
+                            }
+                            return reason;
+                        }
+                    });
+
+                    if (result.isConfirmed) {
+                        const reason = result.value;
+
+                        const response = await fetch('/return-request', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                orderId: orderId,
+                                productId: productId,
+                                quantity: quantity,
+                                reason: reason,
+                            }),
+                        });
+
+                        const responseData = await response.json();
+                        if (response.ok) {
+                            Swal.fire('Success!', responseData.message, 'success');
+                        } else {
+                            Swal.fire('Error!', responseData.message, 'error');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
                 }
             }
 

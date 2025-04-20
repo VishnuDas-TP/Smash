@@ -466,6 +466,7 @@
                                 <input type="hidden" name="cart" value='<%= JSON.stringify(cart ? cart.items : []) %>'>
                                 <input type="hidden" name="totalPrice" value="<%= totalPrice %>">
                                 <input type="hidden" name="finalPrice" id="finalPrice" value="<%= totalPrice %>">
+                                <input type="hidden" name="price" id="price" value="<%= price %>">
                                 <input type="hidden" name="discount" id="discount">
                                 <input type="hidden" name="coupon" id="coupon">
                                 <% if (product) { %>
@@ -724,7 +725,7 @@
                 const response = await fetch('/wallet-payment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(Object.fromEntries(formData))
+                    body: JSON.stringify({...Object.fromEntries(formData)})
                 });
 
                 const result = await response.json();

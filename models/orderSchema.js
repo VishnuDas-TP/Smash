@@ -48,6 +48,12 @@ const orderSchema = new Schema({
         price:{
             type:Number,
             default:0
+        },
+        returnStatus: {
+            type: String,
+            default: 'Not Requested', 
+            enum: ['Not Requested', 'Return Requested', 'Return Approved', 'Returned', 'Return Rejected'],
+            
         }
         }
     ],

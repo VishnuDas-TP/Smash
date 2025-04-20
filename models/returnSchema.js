@@ -13,6 +13,15 @@ const returnSchema = new Schema(
       required: true,
       ref: 'Order'
     },
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'Product'
+    },
+    quantity: {
+      type: Number,
+      default: 0
+    },
     reason: {
       type: String,
       required: true,
