@@ -54,6 +54,12 @@ const orderSchema = new Schema({
             default: 'Not Requested', 
             enum: ['Not Requested', 'Return Requested', 'Return Approved', 'Returned', 'Return Rejected'],
             
+        },
+        cancelStatus: {
+            type: String,
+            default: 'Not Cancelled', 
+            enum: ['Not Cancelled', 'Cancelled', ],
+            
         }
         }
     ],

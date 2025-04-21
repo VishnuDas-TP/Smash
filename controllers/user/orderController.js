@@ -82,23 +82,35 @@ const getOrderCancel = async (req, res) => {
             return res.redirect('/login');
         }
 
-        const id = req.query.id;
+        const orderId=req.query.orderId;
+        const productId=req.query.productId;
+        const quantity=req.query.quantity;
         const reason = req.query.reason;
-        const order = await Order.findById(id);
+        const order = await Order.findById(orderId);
 
         if (!order) {
             console.log('Order not found');
             return res.redirect('/orders');
         }
-        
+        const product = order.orderItems.find(item=>item.product == productId)
+        if (!product) {
+            console.log('Product not found');
+            return res.redirect('/orders');
+        }
+
 
         // If payment method is COD, mark the payment status as 'Failed'
         if (order.paymentMethod === 'COD') {
-            await Order.findByIdAndUpdate(id, { $set: { paymentStatus: 'Failed' } });
+             product.cancelStatus = 'Cancelled';
+             if(order.orderItems.length == 1){
+                order.paymentStatus = 'failed'
+             }
         }
-        else if(order.paymentMethod === 'Online' && order.paymentStatus === 'Completed') {
-            const refundAmount = order.finalAmount;
+        else if((order.paymentMethod === 'Online' || order.paymentMethod === 'Wallet') && order.paymentStatus === 'Completed') {
+            const refundAmount = product.price;
             console.log(refundAmount);
+
+            product.cancelStatus = 'Cancelled';
 
             // Update the user's wallet
             const wallet = await Wallet.findOneAndUpdate(
@@ -109,8 +121,8 @@ const getOrderCancel = async (req, res) => {
                         transactions: {
                             type: 'Refund',
                             amount: refundAmount,
-                            orderId: id,
-                            description: `Refund for cancelled order #${id}`,
+                            orderId: orderId,
+                            description: `Refund for cancelled product on order #${orderId}`,
                             status: 'Completed', // Assuming the refund is instant
                         },
                     },
@@ -121,20 +133,24 @@ const getOrderCancel = async (req, res) => {
 
             console.log(`Refund of ₹${refundAmount} added to wallet for user ${userId}`);
         }
+        await order.save();
         // Restore stock for each product in the order
-        for (const item of order.orderItems) {
-            const product = await Product.findByIdAndUpdate(
-                item.product, // Pass the ID directly
-                { $inc: { quantity: item.quantity } },
+        
+           await Product.findByIdAndUpdate(
+                productId, // Pass the ID directly
+                { $inc: { quantity: quantity } },
                 { new: true } // Returns the updated document
             );
+            console.log('quantity upadated');
             
-        }
+        
 
         // Update order status
-        await Order.findByIdAndUpdate(id, { 
+        if(order.orderItems.length == 1){
+        await Order.findByIdAndUpdate(orderId, { 
             $set: { orderStatus: 'Cancelled', cancellationReason: reason } 
         });
+    }
 
         res.redirect('/orders');
     } catch (error) {
@@ -154,7 +170,7 @@ const returnRequest=async (req,res)=>{
         if(!order){
             return res.status(400).json({message:'order not found'})
         }
-        const exists=await Return.findOne({productId});
+        const exists=await Return.findOne({productId,orderId});
         if(exists){
             return res.status(400).json({message:'product is already apply for return request'})
         }

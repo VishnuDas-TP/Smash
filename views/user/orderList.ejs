@@ -118,72 +118,72 @@
 <%- include("../../views/partails/user/footer.ejs") %>
 
 <script>
-    function confirmCancelOrder(orderId) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, cancel it!',
-            input: 'text',
-            inputPlaceholder: 'Enter reason for cancellation',
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'You need to provide a reason for cancellation!'
-                }
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const reason = result.value;
-                window.location.href = `/cancel-order?id=${orderId}&reason=${encodeURIComponent(reason)}`;
-            }
-        });
-    }
-    async function confirmReturn(orderId) {
-          try {
-            const result = await Swal.fire({
-              title: "Return Order?",
-              icon: "warning",
-              text: "Reason for Returning Product",
-              html: `<textarea id="returnReason" class="swal2-textarea" placeholder="Enter your reason here"></textarea>`,
-              showCancelButton: true,
-              confirmButtonText: 'Submit',
-              cancelButtonText: 'Cancel',
-              preConfirm: () => {
-                const reason = document.getElementById('returnReason').value.trim();
-                if (!reason) {
-                  Swal.showValidationMessage('Reason cannot be empty');
-                }
-                return reason;
-              }
-            });
+    // function confirmCancelOrder(orderId) {
+    //     Swal.fire({
+    //         title: 'Are you sure?',
+    //         text: "You won't be able to revert this!",
+    //         icon: 'warning',
+    //         showCancelButton: true,
+    //         confirmButtonColor: '#d33',
+    //         cancelButtonColor: '#3085d6',
+    //         confirmButtonText: 'Yes, cancel it!',
+    //         input: 'text',
+    //         inputPlaceholder: 'Enter reason for cancellation',
+    //         inputValidator: (value) => {
+    //             if (!value) {
+    //                 return 'You need to provide a reason for cancellation!'
+    //             }
+    //         }
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             const reason = result.value;
+    //             window.location.href = `/cancel-order?id=${orderId}&reason=${encodeURIComponent(reason)}`;
+    //         }
+    //     });
+    // }
+    // async function confirmReturn(orderId) {
+    //       try {
+    //         const result = await Swal.fire({
+    //           title: "Return Order?",
+    //           icon: "warning",
+    //           text: "Reason for Returning Product",
+    //           html: `<textarea id="returnReason" class="swal2-textarea" placeholder="Enter your reason here"></textarea>`,
+    //           showCancelButton: true,
+    //           confirmButtonText: 'Submit',
+    //           cancelButtonText: 'Cancel',
+    //           preConfirm: () => {
+    //             const reason = document.getElementById('returnReason').value.trim();
+    //             if (!reason) {
+    //               Swal.showValidationMessage('Reason cannot be empty');
+    //             }
+    //             return reason;
+    //           }
+    //         });
 
-            if (result.isConfirmed) {
-              const reason = result.value;
+    //         if (result.isConfirmed) {
+    //           const reason = result.value;
 
-              const response = await fetch('/return-request', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json', 
-                },
-                body: JSON.stringify({ 
-                  orderId: orderId,
-                  reason: reason,
-                }),
-              });
+    //           const response = await fetch('/return-request', {
+    //             method: 'POST',
+    //             headers: {
+    //               'Content-Type': 'application/json', 
+    //             },
+    //             body: JSON.stringify({ 
+    //               orderId: orderId,
+    //               reason: reason,
+    //             }),
+    //           });
 
-              const responseData = await response.json();
-              if (response.ok) {
-                Swal.fire('Success!', responseData.message, 'success');
-              } else {
-                Swal.fire('Error!', responseData.message, 'error');
-              }
-            }
-          } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
-          }
-        }
+    //           const responseData = await response.json();
+    //           if (response.ok) {
+    //             Swal.fire('Success!', responseData.message, 'success');
+    //           } else {
+    //             Swal.fire('Error!', responseData.message, 'error');
+    //           }
+    //         }
+    //       } catch (error) {
+    //         console.error('Error:', error);
+    //         Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
+    //       }
+    //     }
 </script>

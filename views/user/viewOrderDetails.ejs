@@ -148,20 +148,31 @@
                                 
                                 <div>
                                     <% let days=(Date.now() - new Date(order.createdOn)) / (1000 * 60 * 60 * 24); %>
-                                    <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Return Requested' &&order.orderStatus !== 'Returned') { %>
-
+                                    <% if (order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Delivered' && order.orderStatus !== 'Return Requested' && order.orderStatus !== 'Returned') { %>
+                                        <% if ( order.orderItems[i].cancelStatus=='Not Cancelled'){ %>
                                         <button class="btn btn-sm btn-danger"
-                                            onclick="confirmCancelOrder('<%= order._id %>')">Cancel</button>
-                                        
+                                            onclick="confirmCancelOrder('<%= order._id %>' , '<%= order.orderItems[i].product %>' , '<%= order.orderItems[i].quantity %>')">Cancel</button>
+                                            <%}else{%>
+                                                <span class="bg-info p-1 rounded text-white" >
+                                                    <%= order.orderItems[i].cancelStatus %>
+                                                </span>
+                                                <%}%>
+                                
                                         <% }else if ( order.orderStatus=='Delivered' && days< 7 ){ %>
-                                            <% if ( order.orderItems[i].returnStatus=='Not Requested' && days< 7 ){ %>
+                                            <% if ( order.orderItems[i].returnStatus=='Not Requested' &&  order.orderItems[i].cancelStatus=='Not Cancelled' && days< 7 ){ %>
                                                 <button class="btn btn-sm btn-danger"
                                                     onclick="confirmReturn('<%= order._id %>' , '<%= order.orderItems[i].product %>' , '<%= order.orderItems[i].quantity %>')">return</button>
 
                                                 <%}else{%>
-                                                    <span class="bg-info p-1 rounded text-white" >
-                                                        <%= order.orderItems[i].returnStatus %>
-                                                    </span>
+                                                    <% if(order.orderItems[i].cancelStatus == 'Cancelled' ){%>
+                                                        <span class="bg-info p-1 rounded text-white" >
+                                                            <%= order.orderItems[i].cancelStatus %>
+                                                            </span>
+                                                      <%  }else{ %>
+                                                        <span class="bg-info p-1 rounded text-white" >
+                                                            <%= order.orderItems[i].returnStatus %>
+                                                            </span>
+                                                        <%}%>
                                                     <%}%>
                                                         <%}%>
                                 </div>
@@ -346,5 +357,29 @@
                     Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
                 }
             }
+
+            function confirmCancelOrder(orderId, productId, quantity) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, cancel it!',
+            input: 'text',
+            inputPlaceholder: 'Enter reason for cancellation',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to provide a reason for cancellation!'
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const reason = result.value;
+                window.location.href = `/cancel-order?orderId=${orderId}&productId=${productId}&quantity=${quantity}&reason=${encodeURIComponent(reason)}`;
+            }
+        });
+    }
 
         </script>

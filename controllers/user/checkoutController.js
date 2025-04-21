@@ -457,15 +457,14 @@ const retryPayment = async (req, res) => {
 
 const walletPayment = async (req, res) => {
     try {
-        const { cart, totalPrice, addressId, singleProduct, finalPrice,price, coupon, discount } = req.body;
-        console.log(req.body);
+        const userId = req.session.user;
+        let { cart, totalPrice, addressId, singleProduct, finalPrice,price, coupon, discount } = req.body;
+        // console.log(req.body);
 
 
         if (typeof singleProduct === 'string') {
-            singleProducts = JSON.parse(singleProduct); // ✅ Convert string to object
+            singleProduct = JSON.parse(singleProduct); // ✅ Convert string to object
         }
-        
-        const userId = req.session.user;
 
 
         if (!userId || !finalPrice || (!cart && !singleProduct)) {
@@ -487,10 +486,13 @@ const walletPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Insufficient wallet balance.' });
         }
 
+        const addressDoc = await Address.findOne({userId})
+        const address = addressDoc.address.find(addr => addr._id.toString() === addressId.toString())
+
         let orderedItems = [];
         if (singleProduct) {
 
-            const product = await Product.findById(singleProducts._id);
+            const product = await Product.findById(singleProduct._id);
             orderedItems.push({
                 product: product._id,
                 quantity: 1,
@@ -516,12 +518,12 @@ const walletPayment = async (req, res) => {
 
 
         const newOrder = new Order({
-            orderedItems,
+            orderItems: orderedItems,
             totalPrice,
             discount: discount,
             finalAmount: finalPrice,
             userId: userId,
-            address: JSON.parse(addressId),
+            address: address,
             status: 'pending',
             paymentMethod: 'Wallet',
             paymentStatus: 'Completed',
