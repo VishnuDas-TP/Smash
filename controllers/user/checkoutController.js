@@ -252,7 +252,7 @@ const orderConfirm = async (req, res) => {
 
         const id = req.query.id
         const order = await Order.findById(id);
-        res.render('success-CheckOut', { orderId: order._id })
+        res.render('success-Checkout', { orderId: order._id })
 
     } catch (error) {
         console.error("Error loading cofirmation page", error);
