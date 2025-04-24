@@ -79,8 +79,8 @@ const login = async (req,res) => {
         const {email,password} = req.body;
         
 
-        const findUser = await User.findOne({isAdmin:0,email:email});
-
+        const findUser = await User.findOne({isAdmin:0,email:email,googleId :{$exists : false}});
+        
         if(!findUser){
             return res.render('login',{message:"User not fuond"});
         }

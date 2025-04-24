@@ -9,22 +9,22 @@ const PDFDocument = require('pdfkit');
 const path = require("path")
 
 
-const getOrders= async (req,res)=>{
+const getOrders = async (req, res) => {
     try {
-        const userId=req.session.user;
+        const userId = req.session.user;
         const user = await User.findById(userId);
-        if(!userId){
+        if (!userId) {
             console.log('user not found');
             return res.redirect('/login')
         }
         const page = parseInt(req.query.page) || 1
-        const limit =parseInt(req.query.limit)||10
-        const skip=(page-1)*limit
-        const totalOrders=await Order.countDocuments({userId:userId})
+        const limit = parseInt(req.query.limit) || 10
+        const skip = (page - 1) * limit
+        const totalOrders = await Order.countDocuments({ userId: userId })
 
 
-        const orders=await Order.find({userId : userId}).sort({createdOn:-1}).skip(skip).limit(limit);
-        const totalPages=Math.ceil(totalOrders/limit);
+        const orders = await Order.find({ userId: userId }).sort({ createdOn: -1 }).skip(skip).limit(limit);
+        const totalPages = Math.ceil(totalOrders / limit);
 
         res.render('orderList', {
             orders,
@@ -42,35 +42,35 @@ const getOrders= async (req,res)=>{
         console.error("Error loading orders page", error);
         res.status(404).redirect('/pageNotFound');
 
-        
+
     }
 }
-const getOrderDetails= async (req,res)=>{
+const getOrderDetails = async (req, res) => {
     try {
-        const orderId=req.query.id;
-        
-        const userId=req.session.user;
-        if(!userId){
+        const orderId = req.query.id;
+
+        const userId = req.session.user;
+        if (!userId) {
             console.log('user not found');
             return res.redirect('/login')
         }
-        const user=await User.findById(userId);
-        const order= await Order.findById(orderId)
+        const user = await User.findById(userId);
+        const order = await Order.findById(orderId)
         const returns = await Return.find({ orderId: orderId });
         const totalRefund = returns.reduce((sum, ret) => sum + ret.refundAmount, 0);
-        const address= order.address || null
-        const products=await Promise.all(
-            order.orderItems.map(async (item)=>{
-                return await Product.findOne({_id:item.product})
+        const address = order.address || null
+        const products = await Promise.all(
+            order.orderItems.map(async (item) => {
+                return await Product.findOne({ _id: item.product })
             })
         );
-        res.render('viewOrderDetails',{order,products,address,user,totalRefund})
+        res.render('viewOrderDetails', { order, products, address, user, totalRefund })
 
 
     } catch (error) {
         console.error(error);
         res.redirect('/pageNotFound')
-        
+
     }
 }
 
@@ -82,17 +82,22 @@ const getOrderCancel = async (req, res) => {
             return res.redirect('/login');
         }
 
-        const orderId=req.query.orderId;
-        const productId=req.query.productId;
-        const quantity=req.query.quantity;
+        const orderId = req.query.orderId;
+        const productId = req.query.productId;
+        const quantity = req.query.quantity;
         const reason = req.query.reason;
         const order = await Order.findById(orderId);
+        let couponPer =0;
+        if (order.couponCode) {
+            const coupon = await Coupon.findOne({ name: order.couponCode })
+             couponPer = coupon.offerPercentage
+        }
 
         if (!order) {
             console.log('Order not found');
             return res.redirect('/orders');
         }
-        const product = order.orderItems.find(item=>item.product == productId)
+        const product = order.orderItems.find(item => item.product == productId)
         if (!product) {
             console.log('Product not found');
             return res.redirect('/orders');
@@ -101,13 +106,16 @@ const getOrderCancel = async (req, res) => {
 
         // If payment method is COD, mark the payment status as 'Failed'
         if (order.paymentMethod === 'COD') {
-             product.cancelStatus = 'Cancelled';
-             if(order.orderItems.length == 1){
+            product.cancelStatus = 'Cancelled';
+            if (order.orderItems.length == 1) {
                 order.paymentStatus = 'failed'
-             }
+            }
         }
-        else if((order.paymentMethod === 'Online' || order.paymentMethod === 'Wallet') && order.paymentStatus === 'Completed') {
-            const refundAmount = product.price;
+        else if ((order.paymentMethod === 'Online' || order.paymentMethod === 'Wallet') && order.paymentStatus === 'Completed') {
+            let refundAmount = product.price * quantity;
+            if (order.couponCode) {
+                refundAmount -= ((couponPer / 100) * refundAmount)
+            }
             console.log(refundAmount);
 
             product.cancelStatus = 'Cancelled';
@@ -135,22 +143,24 @@ const getOrderCancel = async (req, res) => {
         }
         await order.save();
         // Restore stock for each product in the order
-        
-           await Product.findByIdAndUpdate(
-                productId, // Pass the ID directly
-                { $inc: { quantity: quantity } },
-                { new: true } // Returns the updated document
-            );
-            console.log('quantity upadated');
-            
-        
+
+        await Product.findByIdAndUpdate(
+            productId, // Pass the ID directly
+            { $inc: { quantity: quantity } },
+            { new: true } // Returns the updated document
+        );
+        console.log('quantity upadated');
+
+        const allCancelled = order.orderItems.every(item => item.returnStatus == 'Cancelled')
+
 
         // Update order status
-        if(order.orderItems.length == 1){
-        await Order.findByIdAndUpdate(orderId, { 
-            $set: { orderStatus: 'Cancelled', cancellationReason: reason } 
-        });
-    }
+        if (order.orderItems.length == 1 || allCancelled) {
+            await Order.findByIdAndUpdate(orderId, {
+                $set: { orderStatus: 'Cancelled', cancellationReason: reason }
+            });
+
+        }
 
         res.redirect('/orders');
     } catch (error) {
@@ -158,24 +168,33 @@ const getOrderCancel = async (req, res) => {
         res.redirect('/pageNotFound');
     }
 };
-const returnRequest=async (req,res)=>{
+const returnRequest = async (req, res) => {
     try {
-        const userId= req.session.user;
-        const {orderId,productId,quantity,reason}= req.body;
-        
-        
-        const order=await Order.findById(orderId);
-        const product = order.orderItems.find(item=>item.product == productId)
+        const userId = req.session.user;
+        const { orderId, productId, quantity, reason } = req.body;
 
-        if(!order){
-            return res.status(400).json({message:'order not found'})
+        const order = await Order.findById(orderId);
+        const product = order.orderItems.find(item => item.product == productId)
+
+        let couponPer =0;
+        if (order.couponCode) {
+            const coupon = await Coupon.findOne({ name: order.couponCode })
+             couponPer = coupon.offerPercentage
         }
-        const exists=await Return.findOne({productId,orderId});
-        if(exists){
-            return res.status(400).json({message:'product is already apply for return request'})
+
+        if (!order) {
+            return res.status(400).json({ message: 'order not found' })
         }
-        const refundAmount=product.price;
-        const newReturn=new Return({
+        const exists = await Return.findOne({ productId, orderId });
+        if (exists) {
+            return res.status(400).json({ message: 'product is already apply for return request' })
+        }
+        let refundAmount = product.price * quantity;
+        if (order.couponCode) {
+            refundAmount -= ((couponPer / 100) * refundAmount)
+        }
+
+        const newReturn = new Return({
             userId,
             orderId,
             productId,
@@ -187,58 +206,58 @@ const returnRequest=async (req,res)=>{
         })
         await newReturn.save();
         console.log("return working");
-        
-      product.returnStatus = "Return Requested"
-      await order.save()
+
+        product.returnStatus = "Return Requested"
+        await order.save()
 
         console.log("Return Requested", product);
-        
-        
-        return res.status(200).json({message:'return request is successfully applied'})
+
+
+        return res.status(200).json({ message: 'return request is successfully applied' })
 
 
 
     } catch (error) {
         console.log('error on return ');
         console.error(error);
-        return res.status(400).json({message:'not found'})
+        return res.status(400).json({ message: 'not found' })
 
-        
+
     }
 }
 
-const applyCoupon=async (req,res)=>{
-    const {couponCode,totalPrice}=req.body;
-    
+const applyCoupon = async (req, res) => {
+    const { couponCode, totalPrice } = req.body;
+
     try {
-        const userId=req.session.user
+        const userId = req.session.user
         if (!couponCode || !totalPrice) {
             return res.status(400).json({ success: false, message: "Missing coupon code or price" });
         }
-        
-        const coupon =await Coupon.findOne({name:couponCode,expireOn:{$gt:Date.now()}})
-        
-        if(!coupon){
-            return res.json({success:false,meassge:'invalid or expired coupon'})
+
+        const coupon = await Coupon.findOne({ name: couponCode, expireOn: { $gt: Date.now() } })
+
+        if (!coupon) {
+            return res.json({ success: false, meassge: 'invalid or expired coupon' })
         }
-        if(coupon.minimumPrice>totalPrice){
+        if (coupon.minimumPrice > totalPrice) {
             return res.json({ success: false, message: `minimum price to apply coupon ${coupon.minimumPrice}` });
 
         }
-        if(coupon.userId.includes(userId)){
+        if (coupon.userId.includes(userId)) {
             return res.json({ success: false, message: "coupon is already used by you" });
 
         }
         const discount = parseFloat(coupon.offerPercentage);
-        console.log(discount,"discount from applycoupon");
-        
+        console.log(discount, "discount from applycoupon");
+
         if (isNaN(discount)) {
             return res.status(400).json({ success: false, message: "Invalid discount value" });
         }
         const discountAmount = (totalPrice * discount) / 100;
-        console.log(discountAmount,"discountAmount applycoupon");
-        
-        
+        console.log(discountAmount, "discountAmount applycoupon");
+
+
         const finalTotal = totalPrice - discountAmount;
         res.status(200).json({
             success: true,
@@ -248,51 +267,51 @@ const applyCoupon=async (req,res)=>{
         });
     } catch (error) {
         console.error(error);
-        
+
     }
 }
 const removeCoupon = async (req, res) => {
     try {
-  
-      const { totalPrice } = req.body;
-  
-      const discountAmount = 0;
-      const finalTotal = totalPrice;
-  
-      return res.json({
-        success: true,
-        discountAmount,
-        finalTotal,
-      });
-  
+
+        const { totalPrice } = req.body;
+
+        const discountAmount = 0;
+        const finalTotal = totalPrice;
+
+        return res.json({
+            success: true,
+            discountAmount,
+            finalTotal,
+        });
+
     } catch (error) {
-      console.error("Error removing coupon", error);
-      res.status(500);
+        console.error("Error removing coupon", error);
+        res.status(500);
     }
-  }
-  
-  const getCoupons=async (req,res)=>{
+}
+
+const getCoupons = async (req, res) => {
     try {
         productId = req.query.productId;
         quantity = req.query.quantity;
-        
+
         const user = req.session.user;
-        if(!user){
-        return res.redirect('/login');
+        if (!user) {
+            return res.redirect('/login');
         }
-        const currentDate = new Date(); 
+        const currentDate = new Date();
 
         const coupons = await Coupon.find({
-        isList: true,
-        userId: { $ne: user },
-        expireOn:{$gt:currentDate}
+            isList: true,
+            userId: { $ne: user },
+            expireOn: { $gt: currentDate }
         });
-        
-        res.render('couponList',{
+
+        res.render('couponList', {
             coupons,
         });
     } catch (error) {
-        
+
     }
 }
 
@@ -306,7 +325,7 @@ const downloadInvoice = async (req, res) => {
         }
         const address = order.address
         console.log(address);
-        
+
 
         if (!address) {
             return res.status(404).send("Address not found");
@@ -412,9 +431,9 @@ const generateInvoiceTable = (doc, order) => {
             .fontSize(10)
             .text(`${index + 1}`, 50, position)
             .text(item.product.productName, 150, position)
-            .text("₹"+item.product.salePrice.toLocaleString(), 280, position, { width: 90, align: 'right' })
+            .text("₹" + item.product.salePrice.toLocaleString(), 280, position, { width: 90, align: 'right' })
             .text(item.quantity.toString(), 370, position, { width: 90, align: 'right' })
-            .text("₹"+(item.quantity * item.product.salePrice).toLocaleString(), 470, position, { width: 90, align: 'right' });
+            .text("₹" + (item.quantity * item.product.salePrice).toLocaleString(), 470, position, { width: 90, align: 'right' });
     });
 
     const subtotalPosition = position + 30;
@@ -427,13 +446,13 @@ const generateInvoiceTable = (doc, order) => {
     doc
         .fontSize(10)
         .text('Subtotal:', 380, subtotalPosition + 15)
-        .text("Rs."+order.totalPrice.toLocaleString(), 470, subtotalPosition + 15, { width: 90, align: 'right' })
+        .text("Rs." + order.totalPrice.toLocaleString(), 470, subtotalPosition + 15, { width: 90, align: 'right' })
         .text('Discount:', 380, subtotalPosition + 30)
-        .text("Rs."+order.discount.toLocaleString(), 470, subtotalPosition + 30, { width: 90, align: 'right' })
+        .text("Rs." + order.discount.toLocaleString(), 470, subtotalPosition + 30, { width: 90, align: 'right' })
         .fontSize(12)
         .font('Helvetica-Bold')
         .text('Total:', 380, subtotalPosition + 45)
-        .text("Rs."+order.finalAmount.toLocaleString(), 470, subtotalPosition + 45, { width: 90, align: 'right' });
+        .text("Rs." + order.finalAmount.toLocaleString(), 470, subtotalPosition + 45, { width: 90, align: 'right' });
 };
 
 const generateFooter = (doc, order) => {

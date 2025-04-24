@@ -133,7 +133,8 @@ const returnRequest = async (req, res) => {
             const product = order.orderItems.find(item=>item.product.toString() == productId.toString())
             console.log(product);
             product.returnStatus = "Return Approved"
-           
+            const allReturned = order.orderItems.every(item=>item.cancelStatus == 'Return Approved')
+            order.orderStatus = 'Returned'
             await order.save()
     
        

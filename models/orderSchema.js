@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const {Schema} = mongoose;
 const {v4:uuidv4} = require("uuid");
+const Coupon = require("./couponSchema");
 
 const generateShortId = () => {
     const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -99,6 +100,9 @@ const orderSchema = new Schema({
         type:Date,
         default:Date.now,
         required:true
+    },
+    couponCode:{
+        type : String,
     },
     couponApplied:{
         type:Boolean,
